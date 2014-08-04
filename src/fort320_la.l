@@ -20,7 +20,7 @@
 
 	int FLAG_ERROR = 0;
 	char *INPUT_FILE_NAME = NULL;
-	
+
 	char *input_string = NULL;
 %}
 
