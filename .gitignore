@@ -1,0 +1,51 @@
+# ============================================
+# GITIGNORE FILE FOR EVERYTHING IN THE PROJECT
+# ============================================
+
+# ======================
+# C programming language
+# ======================
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# =====================
+# Vim editor
+# =====================
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~
+
+# =================
+# Linux OS
+# =================
+*~
+
+# KDE directory preferences
+.directory
+
