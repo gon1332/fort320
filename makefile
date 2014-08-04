@@ -15,7 +15,7 @@ OBJS	= $(addprefix $(BUILD)/, $(OBJ_FILES))
 
 # Compiler stuff #
 CC	= gcc
-CFLAGS	= -pedantic -g -Wall -Wextra
+CFLAGS	= -g -Wall #-Wextra
 CLIBS	= -lfl -lm
 
 fort320: build_dir $(OBJS)
