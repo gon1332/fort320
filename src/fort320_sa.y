@@ -1,10 +1,13 @@
 %{
 	#include <stdio.h>
+        #include <string.h>
 	#include "../include/SymbolTable/hash_t.h"
 	#include "../include/IR/AST.h"
 	#include "../include/Utils/utils.h"
+        #include "../include/Utils/colors.h"
 	#include "../include/Types/types.h"
-	
+        #include "../include/DebugInfo/forterrors.h"
+
 	/* variable declaration */
 	int scope = 0;	/* scope (or nesting depth) defines where each variable
 			 * is defined within the program. The visibility of each
@@ -17,15 +20,15 @@
 	list_t *curr;
 	/**/
 	init_values *head_init;	/* head of the list */
-	init_values *init;	/* init :list that holds the initializations of id 
-				* if a single var is initialized init holds only 
+	init_values *init;	/* init :list that holds the initializations of id
+				* if a single var is initialized init holds only
 				* one node init is created in the context of
 				* sematic process --> the list is initialized
 				* every time
 				*/
 	/* --- Sematic process spam variables */
 
-	
+
 	void yyerror         (char *msg);
 	list_t *context_check(/*enum code_ops operation, */char *sym_name);
 	list_t *install      (Type type, Complex_Type c_type, char *sym_name);
@@ -49,41 +52,50 @@
 	Type t;
 	Complex_Type c_t;
 
-	struct {
-		Type type;
-		Complex_Type c_type;
-		/* other fields */
-	} v;	/* for expressions */
 
-	/* info_struct
-	 * it is used to pass more information through the sematic values 
-	 * of the (non terminal) symbols. 
-	 * <<Not all fields are used for every non terminal>>
-	 * value_list : type,cat,params
-	 * value : type,cat
-	 */
-	struct {
-		Type type;		/* type */
-		Complex_Type c_type;	/* category */
-		char *str;		/* save multiple ID's...more or less */
-		int params;		/* block has at least (params) parameters */
+        struct {
+                struct {
+                        Type type;
+                        Complex_Type c_type;
+                        /* other fields */
+                } v;	/* for expressions */
 
-		/* basic types */
-		/*union {
-			int intval;
-			double realval;
-			unsigned char charval;
-			char *string;
-			struct{
-				double c_real;
-				double c_imag;
-			} complex;
-		} basic_types;
-		*/
-		initialization_t basic_types;
-	} info_str;
 
-	/*A. function param list */
+                /* info_struct
+                * it is used to pass more information through the sematic values
+                * of the (non terminal) symbols.
+                * <<Not all fields are used for every non terminal>>
+                * value_list : type,cat,params
+                * value : type,cat
+                */
+                struct {
+                        Type type;		/* type */
+                        Complex_Type c_type;	/* category */
+                        char *str;		/* save multiple ID's...more or less */
+                        int params;		/* block has at least (params) parameters */
+
+                        /* basic types */
+                        /*union {
+                                int intval;
+                                double realval;
+                                unsigned char charval;
+                                char *string;
+                                struct{
+                                        double c_real;
+                                        double c_imag;
+                                } complex;
+                        } basic_types;
+                        */
+                        initialization_t basic_types;
+                } info_str;
+
+                struct {
+                        AST_expr_T *expr_node;
+                        AST_cmd_T  *cmd_node;
+                } ast;
+        } symtab_ast;
+
+/*A. function param list */
 	struct params_t *params;
 }
 
@@ -96,15 +108,17 @@
 %type<stringval> dims
 %type<stringval> dim
 %type<stringval> id_list
-%type<info_str> value_list
-%type<info_str> values
-%type<info_str> value
-%type<v> expression
-%type<v> expressions
-%type<v> listexpression
-%type<info_str> simple_constant
-%type<info_str> complex_constant	/* mporei kai na mh xreiazetai */
-%type<info_str> constant
+%type<symtab_ast> expression
+%type<symtab_ast> expressions
+%type<symtab_ast> listexpression
+%type<symtab_ast> simple_constant
+%type<symtab_ast> complex_constant
+%type<symtab_ast> constant
+%type<symtab_ast> label
+%type<symtab_ast> labels
+%type<symtab_ast> value_list
+%type<symtab_ast> values
+%type<symtab_ast> value
 %type<t> variable
 %type<intval> repeat
 %type<charval> sign
@@ -142,7 +156,7 @@
 %token COMMON
 %token INTEGER
 %token REAL
-%token COMPLEX  
+%token COMPLEX
 %token LOGICAL
 %token CHARACTER
 %token STRING
@@ -193,7 +207,7 @@ declarations	: declarations type vars
 			pch = strtok ($3,"%");
 			while (pch != NULL) {
 				curr = lookup_identifier(my_hashtable, pch, scope);
-				curr->type = $2;	/*gia ayth th malakia ta kanw ola*/
+				curr->type = $2;  /*gia ayth th malakia ta kanw ola*/
 				pch = strtok (NULL, "%");
 			}
 			free($3);
@@ -283,7 +297,7 @@ dim		: ICONST
 			 * integer in fort320
 			 */
 			$$ = (char *)malloc(20);
-			sprintf($$, "%d", $1);	
+			sprintf($$, "%d", $1);
 		}
 		| ID
 		{
@@ -315,7 +329,7 @@ id_list		: id_list COMMA ID
 		}
 		| ID
 		{	/* check Symbol Table */
-			if (context_check($1) != NULL) 
+			if (context_check($1) != NULL)
 				$$ = $1;
 		}
 		| error
@@ -329,25 +343,25 @@ vals		: vals COMMA ID value_list
 			curr = context_check($3);
 			if (curr != NULL) {
 				/* validate the consistency of the initializations */
-				if (curr->type != $4.type) {
+				if (curr->type != $4.info_str.type) {
 					ERROR(stderr, "Sematic Error2. Incorrect type");
 					SEM_ERROR = 1;
 				}
 				/* list - array check*/
-				if (curr->cat != $4.c_type) {
+				if (curr->cat != $4.info_str.c_type) {
 					if (curr->cat == C_list &&
-					    $4.c_type == C_array) {
+					    $4.info_str.c_type == C_array) {
 					/* check whether values == 0 */
-						
+
 						/* !_insert_list_! */
 						curr->id_info.init_n.init = head_init; /*&($4.init);*/
 					} else if (curr->cat == C_array &&
-						   $4.c_type == C_variable) {
-					/*Initialize all other elements with 0 */
-					
+						   $4.info_str.c_type == C_variable) {
+        				/*Initialize all other elements with 0 */
+
 						/* !_insert_list_! */
 						curr->id_info.init_n.init = head_init;/*&($4.init);*/
-					
+
 					} else {
 						ERROR(stderr, "Sematic Error2. Incorrect category");
 						SEM_ERROR = 1;
@@ -363,37 +377,37 @@ vals		: vals COMMA ID value_list
 					ERROR(stderr, "Memory Allocation Error.");
 					SEM_ERROR = 1;
 				}*/
-				
+
 			}
 		}
 		| ID value_list
-		{ 
+		{
 			curr = context_check($1);
 			if (curr != NULL) {
 				/*validate the consistency of the initializations*/
-				if(curr->type != $2.type){
+				if(curr->type != $2.info_str.type){
 					/*printf("type %s and cat %s\n",typeNames[$2.type],catNames[$2.cat]);*/
 					ERROR(stderr, "Sematic Error1. Initialization");
 					SEM_ERROR = 1;
 				}
-				if (curr->cat != $2.c_type) {
+				if (curr->cat != $2.info_str.c_type) {
 					if (curr->cat == C_list &&
-					    $2.c_type == C_array) {
+					    $2.info_str.c_type == C_array) {
 					/* check whether values == 0*/
-						
+
+						/* !_insert_list_! */
+        					curr->id_info.init_n.init = head_init;/*&($2.init);*/
+
+					} else if (curr->cat == C_array &&
+					           $2.info_str.c_type == C_variable) {
+					/*Initialize all other elements with 0*/
+
 						/* !_insert_list_! */
 						curr->id_info.init_n.init = head_init;/*&($2.init);*/
-						
-					} else if (curr->cat == C_array &&
-					           $2.c_type == C_variable) {
-					/*Initialize all other elements with 0*/
-					
-						/* !_insert_list_! */
-						curr->id_info.init_n.init = head_init;/*&($2.init);*/	
-					} else {
+                                        } else {
 						ERROR(stderr, "Sematic Error1. Incorrect "
 							"category ID %s, type %s", catNames[curr->cat],
-										   catNames[$2.c_type]);
+										   catNames[$2.info_str.c_type]);
 						SEM_ERROR = 1;
 					}
 				} else{	/* !_insert_list_! */
@@ -418,16 +432,16 @@ values		: values COMMA value
 		{
 			init_values *curr;
 
-			if ($1.type == $3.type) {
-				$$.type = $1.type;
+			if ($1.info_str.type == $3.info_str.type) {
+				$$.info_str.type = $1.info_str.type;
 				/* I have many values therefore array (or list?)*/
-				$$.c_type = C_array;
-				$$.params = $1.params + $3.params;
-				
+				$$.info_str.c_type = C_array;
+				$$.info_str.params = $1.info_str.params + $3.info_str.params;
+
 				/*if(head_init == NULL){
 					printf("Say sth bro \n");
 				}*/
-				
+
 				/* time to form a list ! */
 				/* first initializatins go to the back of the list */
 				for (curr = head_init; curr != NULL; curr = curr->next) {
@@ -441,10 +455,10 @@ values		: values COMMA value
 		}
 		| value
 		{
-			
-			$$.type = $1.type;
-			$$.c_type = $1.c_type;
-			$$.params = 1;
+
+			$$.info_str.type = $1.info_str.type;
+			$$.info_str.c_type = $1.info_str.c_type;
+			$$.info_str.params = 1;
 
 			/* initializations node :: first on the list */
 			head_init = init;
@@ -452,41 +466,41 @@ values		: values COMMA value
 		;
 value		: repeat sign constant
 		{	/* we definately have many elements here::> either list or array */
-			
+
 			/* we assume here it is an array .. if the id initialized here
 			 * is list we fix it in the above levels of parsing
 			 */
-			$$.c_type = C_array;		
-			$$.type = $3.type;
-			
+			$$.info_str.c_type = C_array;
+			$$.info_str.type = $3.info_str.type;
+
 			if($1 < 0 && $1 != -1){
 				ERROR(stderr, "Negative operator in initialization semantics");
 				SEM_ERROR = 1;
 			} else {
 				/* init node initialization */
 				init = create_init_node();
-				init = initialize_node(init,$3.type,$3.basic_types,$1);
-				
+				init = initialize_node(init, $3.info_str.type, $3.info_str.basic_types, $1);
+
 				/* check sign */
 				if ($2 != '%') {
-					if ($3.type == TY_character ||
-					    $3.type == TY_logical ||
-					    $3.type == TY_string) {
+					if ($3.info_str.type == TY_character ||
+					    $3.info_str.type == TY_logical ||
+					    $3.info_str.type == TY_string) {
 						ERROR(stderr, "Sematic fault. Incorrect type");
 						SEM_ERROR = 1;
 					} else {
 						if ($2 == '+') { /* nothing */ }
 						else {	/* ADDOP is '-' */
-							if ($3.type == TY_integer) {
+							if ($3.info_str.type == TY_integer) {
 								init->initialization.intval =
 									-init->initialization.intval;
-							} else if ($3.type == TY_real) {
+							} else if ($3.info_str.type == TY_real) {
 								init->initialization.realval =
 									-init->initialization.realval;
-							} else if ($3.type == TY_complex) {
+							} else if ($3.info_str.type == TY_complex) {
 								init->initialization.complex.c_real =
 									-init->initialization.complex.c_real;
-								init->initialization.complex.c_imag = 
+								init->initialization.complex.c_imag =
 									-init->initialization.complex.c_imag;
 							}
 						}
@@ -495,28 +509,28 @@ value		: repeat sign constant
 			}
 		}
 		| ADDOP constant
-		{	
-			if ($2.type == TY_character || $2.type == TY_logical ||
-			    $2.type == TY_string) {
-				ERROR(stderr, "Sematic fault. Incorrect type");
+		{
+			if ($2.info_str.type == TY_character || $2.info_str.type == TY_logical ||
+			    $2.info_str.type == TY_string) {
+				ERROR(stderr, "Semantic fault. Incorrect type");
 				SEM_ERROR = 1;
 			} else {
-				$$.type = $2.type;
-				$$.c_type = C_variable;
-				
+				$$.info_str.type = $2.info_str.type;
+				$$.info_str.c_type = C_variable;
+
 				init = create_init_node();
-				init = initialize_node(init,$2.type,$2.basic_types,1);
-				
+				init = initialize_node(init, $2.info_str.type, $2.info_str.basic_types,1);
+
 				if ($1 == '+') { /* nothing */ }
 				else {	/* ADDOP is '-' */
-					if ($2.type == TY_integer) {
+					if ($2.info_str.type == TY_integer) {
 						init->initialization.intval =
 							-init->initialization.intval;
-					} else if ($2.type == TY_real) {
+					} else if ($2.info_str.type == TY_real) {
 						init->initialization.realval =
 							-init->initialization.realval;
 					}
-					else if ($2.type == TY_complex) {
+					else if ($2.info_str.type == TY_complex) {
 						init->initialization.complex.c_real =
 							-init->initialization.complex.c_real;
 						init->initialization.complex.c_imag =
@@ -527,12 +541,12 @@ value		: repeat sign constant
 		}
 		| constant
 		{
-			$$.type = $1.type;
-			$$.c_type = C_variable;
+			$$.info_str.type = $1.info_str.type;
+			$$.info_str.c_type = C_variable;
 
 			/* init node initialization */
 			init = create_init_node();
-			init = initialize_node(init, $1.type, $1.basic_types, 1);
+			init = initialize_node(init, $1.info_str.type, $1.info_str.basic_types, 1);
 		}
 		;
 repeat		: ICONST MULOP	{ $$ = $1; }
@@ -546,50 +560,50 @@ constant	: simple_constant	{ $$ = $1; }
 		;
 simple_constant	: ICONST
 		{
-			$$.type = TY_integer;
-			$$.basic_types.intval = $1;
-			mkleaf_int($1);
+			$$.info_str.type = TY_integer;
+			$$.info_str.basic_types.intval = $1;
+			$$.ast.expr_node = mkleaf_int($1);
 		}
 		| RCONST
 		{
-			$$.type = TY_real;
-			$$.basic_types.realval = $1;
-			mkleaf_real($1);
+			$$.info_str.type = TY_real;
+			$$.info_str.basic_types.realval = $1;
+			$$.ast.expr_node = mkleaf_real($1);
 		}
 		| LCONST
 		{
-			$$.type = TY_logical;
-			$$.basic_types.charval = $1;
-			mkleaf_bool($1);
+			$$.info_str.type = TY_logical;
+			$$.info_str.basic_types.charval = $1;
+			$$.ast.expr_node = mkleaf_bool($1);
 		}
 		| CCONST
 		{
-			$$.type = TY_character;
-			$$.basic_types.charval = $1;
-			mkleaf_char($1);
+			$$.info_str.type = TY_character;
+			$$.info_str.basic_types.charval = $1;
+			$$.ast.expr_node = mkleaf_char($1);
 		}
 		| SCONST
 		{
-			$$.type = TY_string;
-			$$.basic_types.string = $1;
-			mkleaf_string($1);
+			$$.info_str.type = TY_string;
+			$$.info_str.basic_types.string = $1;
+			$$.ast.expr_node= mkleaf_string($1);
 		}
 		| error
 		{
 			ERROR(stderr, ER_UNKNWN_CONST(FRED("")));
-			$$.type = TY_invalid;
+			$$.info_str.type = TY_invalid;
 			FLAG_ERROR = 1;
 			SEM_ERROR = 1;
 		}
 		;
 complex_constant: LPAREN RCONST COLON sign RCONST RPAREN %prec T_COMPLEX
 		{
-			$$.type = TY_complex;
-			$$.basic_types.complex.c_real = $2;
+			$$.info_str.type = TY_complex;
+			$$.info_str.basic_types.complex.c_real = $2;
 			if ($4 == '%' || $4 == '+')
-				$$.basic_types.complex.c_imag = $5;
+				$$.info_str.basic_types.complex.c_imag = $5;
 			else
-				$$.basic_types.complex.c_imag = -$5;
+				$$.info_str.basic_types.complex.c_imag = -$5;
 
 			AST_expr_T *reall = mkleaf_real($2);
 			AST_expr_T *realr = mknode_nsign(mkleaf_real($5));
@@ -607,7 +621,7 @@ statements	: statements labeled_statement
 labeled_statement: label statement
 		| statement
 		;
-label		: ICONST { $$ = mkleaf_int($1); }
+label		: ICONST { $$.ast.expr_node = mkleaf_int($1); }
 		;
 statement	: simple_statement
 		| compound_statement
@@ -624,7 +638,7 @@ simple_statement: assignment
 assignment	: variable ASSIGN expression
 		{
 			/*print_expr($3, 0);*/
-			mkcmd_assign($3);	/*evala cmd node edw !!!*/
+			mkcmd_assign($3.ast.expr_node);	/*evala cmd node edw !!!*/
 		}
 		;
 variable	: ID LPAREN expressions RPAREN
@@ -634,7 +648,7 @@ variable	: ID LPAREN expressions RPAREN
 		}
 		| LISTFUNC LPAREN expression RPAREN
 		{
-			$$ = $3;
+			$$ = $3.v.type;
 		}
 		| ID
 		{
@@ -642,28 +656,28 @@ variable	: ID LPAREN expressions RPAREN
 			$$ = mkleaf_id(id);
 		}
 		;
-expressions	: expressions COMMA expression	{ $$ = mknode_comma($1, $3);}
-		| expression			{ $$ = $1; }
+expressions	: expressions COMMA expression	{ $$.v = mknode_comma($1.v, $3.v);}
+		| expression			{ $$.v = $1.v; }
 		;
-expression	: expression OROP expression	{ $$ = mknode_or($1, $3);   }
-		| expression ANDOP expression	{ $$ = mknode_and($1, $3);  }
-		| expression RELOP expression	{ $$ = mknode_gt($1, $3);   }
-		| expression ADDOP expression	{ $$ = mknode_plus($1, $3); }
-		| expression MULOP expression	{ $$ = mknode_mul($1, $3);  }
-		| expression DIVOP expression	{ $$ = mknode_div($1, $3);  }
-		| expression POWEROP expression	{ $$ = mknode_pow($1, $3);  }
-		| NOTOP expression		{ $$ = mknode_not($2);      }
-		| ADDOP expression		{ $$ = mknode_psign($2);    }
-		| variable			{ $$ = $1; }
-		| simple_constant		{ $$ = $1; }
-		| LENGTH LPAREN expression RPAREN	{ $$ = $3; }
-		| NEW LPAREN expression RPAREN		{ $$ = $3; }
-		| LPAREN expression RPAREN		{ $$ = $2; }
-		| LPAREN expression COLON expression RPAREN	{ $$ = mknode_colon($2, $4); }
-		| listexpression			{ $$ = $1; }
+expression	: expression OROP expression	{ $$.v = mknode_or($1.v, $3.v);   }
+		| expression ANDOP expression	{ $$.v = mknode_and($1.v, $3.v);  }
+		| expression RELOP expression	{ $$.v = mknode_gt($1.v, $3.v);   }
+		| expression ADDOP expression	{ $$.v = mknode_plus($1.v, $3.v); }
+		| expression MULOP expression	{ $$.v = mknode_mul($1.v, $3.v);  }
+		| expression DIVOP expression	{ $$.v = mknode_div($1.v, $3.v);  }
+		| expression POWEROP expression	{ $$.v = mknode_pow($1.v, $3.v);  }
+		| NOTOP expression		{ $$.v = mknode_not($2.v);      }
+		| ADDOP expression		{ $$.v = mknode_psign($2.v);    }
+		| variable			{ $$.v = $1.v; }
+		| simple_constant		{ $$.v = $1.v; }
+		| LENGTH LPAREN expression RPAREN	{ $$.v = $3.v; }
+		| NEW LPAREN expression RPAREN		{ $$.v = $3.v; }
+		| LPAREN expression RPAREN		{ $$.v = $2.v; }
+		| LPAREN expression COLON expression RPAREN	{ $$.v = mknode_colon($2.v, $4.v); }
+		| listexpression			{ $$.v = $1.v; }
 		;
-listexpression	: LBRACK expressions RBRACK %prec T_BRACKETS	{ $$ = $2; }
-		| LBRACK RBRACK %prec T_BRACKETS		{ $$ = NULL; }
+listexpression	: LBRACK expressions RBRACK %prec T_BRACKETS	{ $$.v = $2.v; }
+		| LBRACK RBRACK %prec T_BRACKETS		{ $$.v = NULL; }
 		;
 goto_statement	: GOTO label { mkcmd_assign($2); }	/*evala cmd node edw !!!*/
 		| GOTO ID COMMA LPAREN labels RPAREN {
@@ -671,7 +685,7 @@ goto_statement	: GOTO label { mkcmd_assign($2); }	/*evala cmd node edw !!!*/
 			mkcmd_goto($5);		/*evala cmd node edw !!!*/
 		}
 		;
-labels		: labels COMMA label { $$ = mknode_comma($1, $3); }	/*/evala cmd node edw !!!*/
+labels		: labels COMMA label { mknode_comma($1, $3); }	/*/evala cmd node edw !!!*/
 		| label { $$ = $1; }
 		;
 if_statement	: IF LPAREN expression RPAREN label COMMA label COMMA label
@@ -748,7 +762,7 @@ list_t *context_check(/*enum code_ops operation, */char *sym_name)
 {
 	list_t *id = NULL;
 	id = lookup_identifier(my_hashtable, sym_name, scope);
-	
+
 	if (!id) {
 		ERROR(stderr, "%s is undefined", sym_name);
 	} else {
@@ -759,7 +773,7 @@ list_t *context_check(/*enum code_ops operation, */char *sym_name)
 
 /*  char *str_append(char *source_1, char *source_2)
  *
- *	Appends 2 strings into one bigger string. The two strings are 
+ *	Appends 2 strings into one bigger string. The two strings are
  *	seperated from the special character '%'
  */
 char* str_append(char *source_1, char *source_2)
@@ -789,7 +803,7 @@ init_values *create_init_node(void)
 	if (NULL == node) {
 		ERROR(stderr, "Memory Allocation Error\n");
 		SEM_ERROR = 1;
-	}			
+	}
 
 	return node ;
 }
@@ -833,7 +847,7 @@ init_values *initialize_node(init_values *node,
 		break;
 	case TY_complex:
 		node->initialization.complex.c_real = constant.complex.c_real;
-		node->initialization.complex.c_imag = constant.complex.c_imag; 
+		node->initialization.complex.c_imag = constant.complex.c_imag;
 		break;
 	default:
 		/*nothing -> should not go here*/
