@@ -49,3 +49,17 @@ Session.vim
 # KDE directory preferences
 .directory
 
+# =========================================
+# Project files/directories and Test cases
+# =========================================
+*.f
+build/
+README.first
+fort320_la.c
+lex.yy.c
+fort320_sa.c
+tok.h
+fort320_sa.tab.c
+fort320_sa.tab.h
+fort320_sa.output
+fort320
