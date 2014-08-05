@@ -54,6 +54,7 @@ Session.vim
 # =========================================
 *.f
 build/
+notes/
 README.FIRST
 fort320_la.c
 lex.yy.c
