@@ -54,7 +54,7 @@ AST_cmd_T  *AST_head, *AST_tail;
 #define mknode_paren(y,z)	mknode(EXPR_PAREN,y,z)	/* y(z) */
 #define mknode_assign(y,z)	mknode(EXPR_ASSIGN_EXPR,y,z)
 #define mknode_colon(y,z)	mknode(EXPR_COLON,y,z)
-#define mknode_brack(y,z)	mknode(EXPR_BRACK,y,z)
+#define mknode_brack(y,z)	mknode(EXPR_BRACK,y,z)  /* y[z] */
 #define mknode_comma(y,z)	mknode(EXPR_COMMA,y,z)
 #define mknode_or(y,z)		mknode(EXPR_OR,y,z)
 #define mknode_and(y,z)		mknode(EXPR_AND,y,z)

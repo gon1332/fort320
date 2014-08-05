@@ -42,18 +42,18 @@
 
 %union
 {
-	/* Basic Types */
-	int           intval;
-	double        realval;
-	unsigned char charval;
-	char         *stringval;
-
-	/* Type and Category */
-	Type t;
-	Complex_Type c_t;
-
-
         struct {
+
+                /* Basic Types */
+                int           intval;
+                double        realval;
+                unsigned char charval;
+                char         *stringval;
+
+        	/* Type and Category */
+        	Type t;
+        	Complex_Type c_t;
+
                 struct {
                         Type type;
                         Complex_Type c_type;
@@ -62,12 +62,12 @@
 
 
                 /* info_struct
-                * it is used to pass more information through the sematic values
-                * of the (non terminal) symbols.
-                * <<Not all fields are used for every non terminal>>
-                * value_list : type,cat,params
-                * value : type,cat
-                */
+                 * it is used to pass more information through the sematic values
+                 * of the (non terminal) symbols.
+                 * <<Not all fields are used for every non terminal>>
+                 * value_list : type,cat,params
+                 * value : type,cat
+                 */
                 struct {
                         Type type;		/* type */
                         Complex_Type c_type;	/* category */
@@ -101,13 +101,13 @@
 
 %start program
 
-%type<t> type
-%type<stringval> vars
-%type<stringval> undef_variable
-%type<c_t> listspec
-%type<stringval> dims
-%type<stringval> dim
-%type<stringval> id_list
+%type<symtab_ast> type
+%type<symtab_ast> vars
+%type<symtab_ast> undef_variable
+%type<symtab_ast> listspec
+%type<symtab_ast> dims
+%type<symtab_ast> dim
+%type<symtab_ast> id_list
 %type<symtab_ast> expression
 %type<symtab_ast> expressions
 %type<symtab_ast> listexpression
@@ -119,17 +119,18 @@
 %type<symtab_ast> value_list
 %type<symtab_ast> values
 %type<symtab_ast> value
-%type<t> variable
-%type<intval> repeat
-%type<charval> sign
+%type<symtab_ast> variable
+%type<symtab_ast> repeat
+%type<symtab_ast> sign
 
-%type<params> formal_parameters
+/*%type<params> formal_parameters
+*/
 
-%token<stringval> OROP
-%token<stringval> ANDOP
-%token<stringval> NOTOP
-%token<stringval> RELOP
-%token<charval> ADDOP
+%token<symtab_ast> OROP
+%token<symtab_ast> ANDOP
+%token<symtab_ast> NOTOP
+%token<symtab_ast> RELOP
+%token<symtab_ast> ADDOP
 %token MULOP
 %token DIVOP
 %token POWEROP
@@ -143,12 +144,12 @@
 %token LBRACK
 %token RBRACK
 
-%token<stringval> ID
-%token<intval> ICONST
-%token<realval> RCONST
-%token<charval> LCONST
-%token<charval> CCONST
-%token<stringval> SCONST
+%token<symtab_ast> ID
+%token<symtab_ast> ICONST
+%token<symtab_ast> RCONST
+%token<symtab_ast> LCONST
+%token<symtab_ast> CCONST
+%token<symtab_ast> SCONST
 
 %token FUNCTION
 %token SUBROUTINE
@@ -207,88 +208,88 @@ declarations	: declarations type vars
 			pch = strtok ($3,"%");
 			while (pch != NULL) {
 				curr = lookup_identifier(my_hashtable, pch, scope);
-				curr->type = $2;  /*gia ayth th malakia ta kanw ola*/
+				curr->type = $2.t;  /*gia ayth th malakia ta kanw ola*/
 				pch = strtok (NULL, "%");
 			}
-			free($3);
+			free($3.stringval);
 		}
 		| declarations COMMON cblock_list
 		| declarations DATA vals
 		| /* empty */
 		;
-type		: INTEGER	{ $$ = TY_integer; }
-		| REAL		{ $$ = TY_real; }
-		| COMPLEX	{ $$ = TY_complex; }
-		| LOGICAL	{ $$ = TY_logical; }
-		| CHARACTER	{ $$ = TY_character; }
-		| STRING	{ $$ = TY_string; }
+type		: INTEGER	{ $$.t = TY_integer; }
+		| REAL		{ $$.t = TY_real; }
+		| COMPLEX	{ $$.t = TY_complex; }
+		| LOGICAL	{ $$.t = TY_logical; }
+		| CHARACTER	{ $$.t = TY_character; }
+		| STRING	{ $$.t = TY_string; }
 		;
 vars		: vars COMMA undef_variable
       		{
-			if (NULL == $1 && $3 != NULL)
-				$$ = $3;
-			else if ($3 != NULL $$ $1 != NULL)
-				$$ = str_append($1, $3);
+			if (NULL == $1.stringval && $3.stringval != NULL)
+				$$.stringval = $3.stringval;
+			else if ($3.stringval != NULL && $1.stringval != NULL)
+				$$.stringval = str_append($1.stringval, $3.stringval);
 			else
-				$$ = $1;
+				$$.stringval = $1.stringval;
 		}
 		| undef_variable
 		{
-			if ($1 != NULL)
-				$$ = 1;
+			if ($1.stringval != NULL)
+				$$.stringval = 1;
 			else
-				$$ = NULL;
+				$$.stringval = NULL;
 		}
 		;
 undef_variable	: listspec ID LPAREN dims RPAREN
 		{
-	       		if ($1 == C_list) {
-				if (NULL == install(TY_unknown, $1, $2)) {
-					$$ = $2;
+	       		if ($1.c_t == C_list) {
+				if (NULL == install(TY_unknown, $1.c_t, $2.stringval)) {
+					$$.stringval = $2.stringval;
 					/* pass the dimensions of id in hash table */
-					curr = context_check($2);
-					curr->id_info.init_n.dimensions = strdup($4);
+					curr = context_check($2.stringval);
+					curr->id_info.init_n.dimensions = strdup($4.stringval);
 					/* the above maybe not so needed */
 				} else {
-					$$ = NULL;
+					$$.stringval = NULL;
 				}
 			} else {
-				if (install(NULL == TY_unknown, C_array, $2)) {
-					$$ = $2;
+				if (NULL == install(TY_unknown, C_array, $2.stringval)) {
+					$$.stringval = $2.stringval;
 					/* pass the dimensions of id in hash table */
-					curr = context_check($2);
-					curr->id_info.init_n.dimensions = strdup($4);
+					curr = context_check($2.stringval);
+					curr->id_info.init_n.dimensions = strdup($4.stringval);
 				} else {
-					$$ = NULL;
+					$$.stringval = NULL;
 				}
 			}
 		}
 		| listspec ID
 		{
-			if (NULL == install(TY_unknown, $1, $2))
-				$$ = $2;
+			if (NULL == install(TY_unknown, $1.c_t, $2.stringval))
+				$$.stringval = $2.stringval;
 			else
-				$$ = NULL;
+				$$.stringval = NULL;
 		}
 		;
-listspec	: LIST		{ $$ = C_list; }
-		| /* empty */	{ $$ = C_variable; }
+listspec	: LIST		{ $$.c_t = C_list; }
+		| /* empty */	{ $$.c_t = C_variable; }
 		;
 dims		: dims COMMA dim
 		{	/*same as vars rule*/
-			if (NULL == $1 && $3 != NULL)
-				$$ = $3;
-			else if ($3 != NULL && $1 != NULL)
-				$$ = str_append($1, $3);
+			if (NULL == $1.stringval && $3.stringval != NULL)
+				$$.stringval = $3.stringval;
+			else if ($3.stringval != NULL && $1.stringval != NULL)
+				$$.stringval = str_append($1.stringval, $3.stringval);
 			else
-				$$ = $1;
+				$$.stringval = $1.stringval;
 		}
 		| dim
 		{
-			if ($1 != NULL)
-				$$ = $1;
+			if ($1.stringval != NULL)
+				$$.stringval = $1.stringval;
 			else
-				$$ = NULL;
+				$$.stringval = NULL;
 		}
 		;
 dim		: ICONST
@@ -296,15 +297,15 @@ dim		: ICONST
 			/* allocate enough bytes to satisfy even the largest
 			 * integer in fort320
 			 */
-			$$ = (char *)malloc(20);
-			sprintf($$, "%d", $1);
+			$$.stringval = (char *)malloc(20);
+			sprintf($$.stringval, "%d", $1.intval);
 		}
 		| ID
 		{
-			if (context_check($1) != NULL)
-				$$ = $1;
+			if (context_check($1.stringval) != NULL)
+				$$.stringval = $1.stringval;
 			else
-				$$ = NULL;
+				$$.stringval = NULL;
 		}
 		| error
 		{
@@ -317,20 +318,20 @@ cblock_list	: cblock_list cblock
 		;
 cblock		: DIVOP ID DIVOP id_list
 		{
-			install(TY_unknown, C_common, $2);
+			install(TY_unknown, C_common, $2.stringval);
 		}
 		;
 id_list		: id_list COMMA ID
 		{
 			/* check Symbol Table */
-			if (context_check($3) != NULL)
+			if (context_check($3.stringval) != NULL)
 				/* keep the id for the next rules */
-				$$ = str_append($1, $3);
+				$$.stringval = str_append($1.stringval, $3.stringval);
 		}
 		| ID
 		{	/* check Symbol Table */
-			if (context_check($1) != NULL)
-				$$ = $1;
+			if (context_check($1.stringval) != NULL)
+				$$.stringval = $1.stringval;
 		}
 		| error
 		{
@@ -340,7 +341,7 @@ id_list		: id_list COMMA ID
 		;
 vals		: vals COMMA ID value_list
 		{	/* Initialization block*/
-			curr = context_check($3);
+			curr = context_check($3.stringval);
 			if (curr != NULL) {
 				/* validate the consistency of the initializations */
 				if (curr->type != $4.info_str.type) {
@@ -382,7 +383,7 @@ vals		: vals COMMA ID value_list
 		}
 		| ID value_list
 		{
-			curr = context_check($1);
+			curr = context_check($1.stringval);
 			if (curr != NULL) {
 				/*validate the consistency of the initializations*/
 				if(curr->type != $2.info_str.type){
@@ -425,7 +426,7 @@ vals		: vals COMMA ID value_list
 		;
 value_list	: DIVOP values DIVOP
 		{
-			$$ = $2;
+			$$.info_str.type = $2.info_str.type;
 		}
 		;
 values		: values COMMA value
@@ -473,23 +474,23 @@ value		: repeat sign constant
 			$$.info_str.c_type = C_array;
 			$$.info_str.type = $3.info_str.type;
 
-			if($1 < 0 && $1 != -1){
+			if($1.intval < 0 && $1.intval != -1){
 				ERROR(stderr, "Negative operator in initialization semantics");
 				SEM_ERROR = 1;
 			} else {
 				/* init node initialization */
 				init = create_init_node();
-				init = initialize_node(init, $3.info_str.type, $3.info_str.basic_types, $1);
+				init = initialize_node(init, $3.info_str.type, $3.info_str.basic_types, $1.intval);
 
 				/* check sign */
-				if ($2 != '%') {
+				if ($2.charval != '%') {
 					if ($3.info_str.type == TY_character ||
 					    $3.info_str.type == TY_logical ||
 					    $3.info_str.type == TY_string) {
 						ERROR(stderr, "Sematic fault. Incorrect type");
 						SEM_ERROR = 1;
 					} else {
-						if ($2 == '+') { /* nothing */ }
+						if ($2.charval == '+') { /* nothing */ }
 						else {	/* ADDOP is '-' */
 							if ($3.info_str.type == TY_integer) {
 								init->initialization.intval =
@@ -521,7 +522,7 @@ value		: repeat sign constant
 				init = create_init_node();
 				init = initialize_node(init, $2.info_str.type, $2.info_str.basic_types,1);
 
-				if ($1 == '+') { /* nothing */ }
+				if ($1.charval == '+') { /* nothing */ }
 				else {	/* ADDOP is '-' */
 					if ($2.info_str.type == TY_integer) {
 						init->initialization.intval =
@@ -549,11 +550,11 @@ value		: repeat sign constant
 			init = initialize_node(init, $1.info_str.type, $1.info_str.basic_types, 1);
 		}
 		;
-repeat		: ICONST MULOP	{ $$ = $1; }
-		| MULOP		{ $$ = -1; /* -1:for infinite */ }
+repeat		: ICONST MULOP	{ $$.intval = $1.intval; }
+		| MULOP		{ $$.intval = -1; /* -1:for infinite */ }
 		;
-sign		: ADDOP		{ $$ = $1; }
-		| /* empty */	{ $$ = '%'; }
+sign		: ADDOP		{ $$.charval = $1.charval; }
+		| /* empty */	{ $$.charval = '%'; }
 		;
 constant	: simple_constant	{ $$ = $1; }
 		| complex_constant	{ $$ = $1; }
@@ -561,32 +562,32 @@ constant	: simple_constant	{ $$ = $1; }
 simple_constant	: ICONST
 		{
 			$$.info_str.type = TY_integer;
-			$$.info_str.basic_types.intval = $1;
-			$$.ast.expr_node = mkleaf_int($1);
+			$$.info_str.basic_types.intval = $1.intval;
+			$$.ast.expr_node = mkleaf_int($1.intval);
 		}
 		| RCONST
 		{
 			$$.info_str.type = TY_real;
-			$$.info_str.basic_types.realval = $1;
-			$$.ast.expr_node = mkleaf_real($1);
+			$$.info_str.basic_types.realval = $1.realval;
+			$$.ast.expr_node = mkleaf_real($1.realval);
 		}
 		| LCONST
 		{
 			$$.info_str.type = TY_logical;
-			$$.info_str.basic_types.charval = $1;
-			$$.ast.expr_node = mkleaf_bool($1);
+			$$.info_str.basic_types.charval = $1.charval;
+			$$.ast.expr_node = mkleaf_bool($1.charval);
 		}
 		| CCONST
 		{
 			$$.info_str.type = TY_character;
-			$$.info_str.basic_types.charval = $1;
-			$$.ast.expr_node = mkleaf_char($1);
+			$$.info_str.basic_types.charval = $1.charval;
+			$$.ast.expr_node = mkleaf_char($1.charval);
 		}
 		| SCONST
 		{
 			$$.info_str.type = TY_string;
-			$$.info_str.basic_types.string = $1;
-			$$.ast.expr_node= mkleaf_string($1);
+			$$.info_str.basic_types.string = $1.stringval;
+			$$.ast.expr_node= mkleaf_string($1.stringval);
 		}
 		| error
 		{
@@ -599,14 +600,14 @@ simple_constant	: ICONST
 complex_constant: LPAREN RCONST COLON sign RCONST RPAREN %prec T_COMPLEX
 		{
 			$$.info_str.type = TY_complex;
-			$$.info_str.basic_types.complex.c_real = $2;
-			if ($4 == '%' || $4 == '+')
-				$$.info_str.basic_types.complex.c_imag = $5;
+			$$.info_str.basic_types.complex.c_real = $2.realval;
+			if ($4.charval == '%' || $4.charval == '+')
+				$$.info_str.basic_types.complex.c_imag = $5.realval;
 			else
-				$$.info_str.basic_types.complex.c_imag = -$5;
+				$$.info_str.basic_types.complex.c_imag = -$5.realval;
 
-			AST_expr_T *reall = mkleaf_real($2);
-			AST_expr_T *realr = mknode_nsign(mkleaf_real($5));
+			AST_expr_T *reall = mkleaf_real($2.realval);
+			AST_expr_T *realr = mknode_nsign(mkleaf_real($5.realval));
 			$$.ast.expr_node = mknode_paren(NULL, mknode_colon(reall, realr));
  		}
 		;
@@ -621,7 +622,7 @@ statements	: statements labeled_statement
 labeled_statement: label statement
 		| statement
 		;
-label		: ICONST { $$.ast.expr_node = mkleaf_int($1); }
+label		: ICONST { $$.ast.expr_node = mkleaf_int($1.intval); }
 		;
 statement	: simple_statement
 		| compound_statement
@@ -643,50 +644,60 @@ assignment	: variable ASSIGN expression
 		;
 variable	: ID LPAREN expressions RPAREN
 		{
-			/*list_t *id = install($1, 99);*/
-			$$ = mknode_paren(mkleaf_id(id), $3);
+                        list_t *id = context_check($1.stringval);
+                        $$.ast.expr_node = mknode_paren(mkleaf_id(id), $3.ast.expr_node);
 		}
 		| LISTFUNC LPAREN expression RPAREN
 		{
-			$$ = $3.v.type;
+			$$.v.type = $3.v.type;
+                        // When I implement the LISTFUNC feature:
+                        // $$.ast.expr_node = mknode_paren(mkleaf_listfunc($1.stringval), $3.ast.expr_node);
 		}
 		| ID
 		{
-			/*list_t *id = install($1, 99);*/
-			$$ = mkleaf_id(id);
+			list_t *id = context_check($1.stringval);
+			$$.ast.expr_node = mkleaf_id(id);
 		}
 		;
-expressions	: expressions COMMA expression	{ $$.v = mknode_comma($1.v, $3.v);}
-		| expression			{ $$.v = $1.v; }
+expressions	: expressions COMMA expression	{ $$.ast.expr_node = mknode_comma($1.ast.expr_node, $3.ast.expr_node);}
+		| expression			{ $$.ast.expr_node = $1.ast.expr_node; }
 		;
-expression	: expression OROP expression	{ $$.v = mknode_or($1.v, $3.v);   }
-		| expression ANDOP expression	{ $$.v = mknode_and($1.v, $3.v);  }
-		| expression RELOP expression	{ $$.v = mknode_gt($1.v, $3.v);   }
-		| expression ADDOP expression	{ $$.v = mknode_plus($1.v, $3.v); }
-		| expression MULOP expression	{ $$.v = mknode_mul($1.v, $3.v);  }
-		| expression DIVOP expression	{ $$.v = mknode_div($1.v, $3.v);  }
-		| expression POWEROP expression	{ $$.v = mknode_pow($1.v, $3.v);  }
-		| NOTOP expression		{ $$.v = mknode_not($2.v);      }
-		| ADDOP expression		{ $$.v = mknode_psign($2.v);    }
-		| variable			{ $$.v = $1.v; }
-		| simple_constant		{ $$.v = $1.v; }
-		| LENGTH LPAREN expression RPAREN	{ $$.v = $3.v; }
-		| NEW LPAREN expression RPAREN		{ $$.v = $3.v; }
-		| LPAREN expression RPAREN		{ $$.v = $2.v; }
-		| LPAREN expression COLON expression RPAREN	{ $$.v = mknode_colon($2.v, $4.v); }
-		| listexpression			{ $$.v = $1.v; }
+expression	: expression OROP expression	{ $$.ast.expr_node = mknode_or($1.ast.expr_node, $3.ast.expr_node);   }
+		| expression ANDOP expression	{ $$.ast.expr_node = mknode_and($1.ast.expr_node, $3.ast.expr_node);  }
+		| expression RELOP expression	{ $$.ast.expr_node = mknode_gt($1.ast.expr_node, $3.ast.expr_node);   }
+		| expression ADDOP expression	{ $$.ast.expr_node = mknode_plus($1.ast.expr_node, $3.ast.expr_node); }
+		| expression MULOP expression	{ $$.ast.expr_node = mknode_mul($1.ast.expr_node, $3.ast.expr_node);  }
+		| expression DIVOP expression	{ $$.ast.expr_node = mknode_div($1.ast.expr_node, $3.ast.expr_node);  }
+		| expression POWEROP expression	{ $$.ast.expr_node = mknode_pow($1.ast.expr_node, $3.ast.expr_node);  }
+		| NOTOP expression		{ $$.ast.expr_node = mknode_not($2.ast.expr_node);      }
+		| ADDOP expression		{ $$.ast.expr_node = mknode_psign($2.ast.expr_node);    }
+		| variable			{ $$.ast.expr_node = $1.ast.expr_node; $$.v = $1.v;     }
+		| simple_constant		{ $$.ast.expr_node = $1.ast.expr_node; }
+		| LENGTH LPAREN expression RPAREN	{ $$.ast.expr_node = $3.ast.expr_node; }
+		| NEW LPAREN expression RPAREN		{ $$.ast.expr_node = $3.ast.expr_node; }
+		| LPAREN expression RPAREN		{ $$.ast.expr_node = $2.ast.expr_node; }
+		| LPAREN expression COLON expression RPAREN	{ $$.ast.expr_node = mknode_colon($2.ast.expr_node, $4.ast.expr_node); }
+		| listexpression			{ $$.ast.expr_node = $1.ast.expr_node; }
 		;
-listexpression	: LBRACK expressions RBRACK %prec T_BRACKETS	{ $$.v = $2.v; }
-		| LBRACK RBRACK %prec T_BRACKETS		{ $$.v = NULL; }
+listexpression	: LBRACK expressions RBRACK %prec T_BRACKETS
+                {
+                        $$.ast.expr_node = mknode_brack(NULL, $2.ast.expr_node);
+                        $$.v.type = $2.v.type;
+                }
+		| LBRACK RBRACK %prec T_BRACKETS
+                {
+                        $$.ast.expr_node = mknode_brack(NULL, NULL);
+                        //$$.v.type = NULL;
+                }
 		;
-goto_statement	: GOTO label { mkcmd_assign($2); }	/*evala cmd node edw !!!*/
+goto_statement	: GOTO label { mkcmd_assign(mkleaf_int($2.intval)); }	/*evala cmd node edw !!!*/
 		| GOTO ID COMMA LPAREN labels RPAREN {
 			/*add_identifier(my_hashtable, $2, scope, 1);*/
-			mkcmd_goto($5);		/*evala cmd node edw !!!*/
+			mkcmd_goto($5.ast.expr_node);		/*evala cmd node edw !!!*/
 		}
 		;
-labels		: labels COMMA label { mknode_comma($1, $3); }	/*/evala cmd node edw !!!*/
-		| label { $$ = $1; }
+labels		: labels COMMA label { mknode_comma($1.ast.expr_node, mkleaf_int($3.intval)); }	/*/evala cmd node edw !!!*/
+		| label { $$.ast.expr_node = mkleaf_int($1.intval); }
 		;
 if_statement	: IF LPAREN expression RPAREN label COMMA label COMMA label
 		| IF LPAREN expression RPAREN simple_statement
