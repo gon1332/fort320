@@ -13,7 +13,7 @@ typedef union {
 	char *string;
 	struct{
 		double c_real;
-		double c_imag; 
+		double c_imag;
 	} complex;
 } initialization_t;
 
@@ -25,7 +25,6 @@ struct params_t {
 	Type p_type;
 	int eval_t; 	/* Evaluation strategy >> by value::0 or by reference::1 */
 	struct params_t *next;
-	
 };
 
 /* init_values_t
