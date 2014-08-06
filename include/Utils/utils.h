@@ -16,6 +16,8 @@
 #define BIN_base	2
 #define OCT_base	8
 
+#include <stdio.h>
+
 extern int LINENO;		/* line numbering */
 extern int FR_COL;		/* column numbering */
 extern int TO_COL;
@@ -29,5 +31,7 @@ void INFO_REFRESH(void);
 
 int convert_hex_bin_oct_to_dec (const char *input);
 double convert_hex_bin_oct_to_rconst (const char *input);
+
+char char_value (const char *input);
 
 #endif	/* UTILS */

@@ -29,13 +29,8 @@ typedef enum {
 	C_variable=0, C_const, C_common, C_list, C_array, C_unknown
 } Complex_Type;		/* ----------  end of enum Complex_Type  ---------- */
 
-const char *typeNames[] = {
-	"invalid", "integer", "real", "character", "logical", "complex", "string",
-	"unknown"
-};
+extern const char *typeNames[];
 
-const char *catNames[] = {
-	"C_variable", "C_const", "C_common", "C_list", "C_array", "C_unknown"
-};
+extern const char *catNames[];
 
 #endif

@@ -1,56 +1,50 @@
 #include <ctype.h>
 #include <stdio.h>
-#include <stdlib.h>  
+#include <stdlib.h>
 #include <string.h>
-#include "../../SymbolTable/hash_t.h"
-
-static const char *typeNames[] = { "invalid", "integer", "real", "character",
-				"logical", "complex", "string", "unknown" };
-static const char *catNames[] = { "C_variable", "C_const",
-				"C_common", "C_list", "C_array", "C_unknown"};
+#include "../../../include/SymbolTable/hash_t.h"
 
 
 hash_table_t *create_hash_table(int size)
 {
-	int i;
-    hash_table_t *new_table;
-    
-    if (size<1) return NULL; /* invalid size for table */
+        int i;
+        hash_table_t *new_table;
 
-    /* Attempt to allocate memory for the table structure */
-    if ((new_table = malloc(sizeof(hash_table_t))) == NULL) {
-        return NULL;
-    }
-    
-    /* Attempt to allocate memory for the table itself */
-    if ((new_table->table = malloc(sizeof(list_t *) * size)) == NULL) {
-        return NULL;
-    }
+        if (size<1) return NULL; /* invalid size for table */
 
-    /* Initialize the elements of the table */
-    for(i=0; i<size; i++) 
-		new_table->table[i] = NULL;
+        /* Attempt to allocate memory for the table structure */
+        if ((new_table = malloc(sizeof(hash_table_t))) == NULL) {
+              return NULL;
+        }
 
-    /* Set the table's size */
-    new_table->size = size;
+        /* Attempt to allocate memory for the table itself */
+        if ((new_table->table = malloc(sizeof(list_t *) * size)) == NULL) {
+                return NULL;
+        }
 
-    return new_table;
+        /* Initialize the elements of the table */
+        for(i=0; i<size; i++)
+                new_table->table[i] = NULL;
+
+        /* Set the table's size */
+        new_table->size = size;
+
+        return new_table;
 }
 
 /* Hash function
-*  
+*
 */
-unsigned int hash(hash_table_t *hashtable, char *str,int embeleia)
+unsigned int hash(hash_table_t *hashtable, char *str, int embeleia)
 {
 	unsigned int hashval = 0;
-	
+
 	for(; *str != '\0'; str++) hashval = *str + (hashval << 5) - hashval;
 
-    /* return the hash value mod the hashtable size so that it will
-     * fit into the necessary range
-     */
-    return hashval % hashtable->size;
-
+        /* return the hash value mod the hashtable size so that it will
+         * fit into the necessary range
+         */
+        return hashval % hashtable->size;
 }
 
 list_t *lookup_identifier(hash_table_t *hashtable, char *str,int embeleia)
@@ -63,14 +57,14 @@ list_t *lookup_identifier(hash_table_t *hashtable, char *str,int embeleia)
      * If it isn't, the item isn't in the table, so return NULL.
      */
     for(list = hashtable->table[hashval]; list != NULL; list = list->next) {
-        if (strcmp(str, list->str) == 0 && list->reach <= embeleia) 
+        if (strcmp(str, list->str) == 0 && list->reach <= embeleia)
 		return list;
     }
     return NULL;
 }
 /*	add_identifier(hash_table_t *hashtable, char *str, int embeleia)
  *		Adds a new identifier to the hash table. The node is put in the first position of each
- *		respective list_t. 
+ *		respective list_t.
  */
 int add_identifier(hash_table_t *hashtable, char *str, int embeleia, Type type, Complex_Type cat)
 {
@@ -92,7 +86,7 @@ int add_identifier(hash_table_t *hashtable, char *str, int embeleia, Type type, 
     new_list->type = type;
     new_list->cat = cat;
     new_list->is_function = 0;				/* intial value set to 0:: if func we set it in grammar rules*/
-    
+
     /* NOTE: id_info represents a union structure representing different data based on variables cat and is_func
      * and therefore not initialized here.
      */
@@ -102,14 +96,14 @@ int add_identifier(hash_table_t *hashtable, char *str, int embeleia, Type type, 
 		hashtable->table[hashval] = new_list;
 		new_list->next = NULL;
 		new_list->prev = NULL;
-	}	
+	}
 	/* insert node in list */
 	else{
 		hashtable->table[hashval]->prev = new_list;
 		new_list->next = hashtable->table[hashval];
 		hashtable->table[hashval] = new_list;
 	}
-	
+
 	/* Refresh stack */
 	if(	add_to_stack(hashtable, new_list, hashval) != 0 ){
 		printf("Error in stack allocation\n");
@@ -123,7 +117,7 @@ int add_identifier(hash_table_t *hashtable, char *str, int embeleia, Type type, 
 	/*printf("------------STACKme-------------\n");
 	print_stack(hashtable);
 	printf("--------------------------------\n");*/
-	
+
     return 0;
 }
 /* int delete_id(hash_table_t *hashtable ,list_t *d_node, int table_num)

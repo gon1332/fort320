@@ -11,6 +11,7 @@
 	#include "../include/SymbolTable/hash_t.h"
 	#include "../include/IR/AST.h"
 	#include "tok.h"
+        #include <string.h>
 
 	#define YY_USER_ACTION { FR_COL = TO_COL; FR_COL++; TO_COL += yyleng; }
 
@@ -93,83 +94,83 @@ RETURN|return		{ list_insert(yytext); return (RETURN); }
 
 {ICONST}	{	/* ICONST */
 	list_insert(yytext);
-	yylval.intval = convert_hex_bin_oct_to_dec(yytext);
+	yylval.symtab_ast.intval = convert_hex_bin_oct_to_dec(yytext);
 	return (ICONST);
 }
 
 {RCONST}	{	/* RCONST */
 	list_insert(yytext);
-	yylval.realval = convert_hex_bin_oct_to_rconst(yytext);
+	yylval.symtab_ast.realval = convert_hex_bin_oct_to_rconst(yytext);
 	return (RCONST);
 }
 
 {CCONST}	{	/* CCONST */
 	list_insert(yytext);
-	yylval.charval = char_value(yytext);
+	yylval.symtab_ast.charval = char_value(yytext);
 	return (CCONST);
 }
 
 C(AD*|D+)R	{	/* LISTFUNC */
 	list_insert(yytext);
-	yylval.stringval = strdup(yytext);
+	yylval.symtab_ast.stringval = strdup(yytext);
 	return (LISTFUNC);
 }
 
 {LETTER}(([_]?{ALPHANUM})*[_]|{ALPHANUM}*)	{	/* ID */
 	list_insert(yytext);
-	yylval.stringval = strdup(yytext);
+	yylval.symtab_ast.stringval = strdup(yytext);
 	return (ID);
 }
 
 \.(GT|gt)\.	{	/* RELOP GT*/
 	list_insert(yytext);
-	yylval.stringval = strdup(yytext);
+	yylval.symtab_ast.stringval = strdup(yytext);
 	return (RELOP);
 }
 
 \.(GE|ge)\.	{	/* RELOP GE*/
 	list_insert(yytext);
-	yylval.stringval = strdup(yytext);
+	yylval.symtab_ast.stringval = strdup(yytext);
 	return (RELOP);
 
 }
 
 \.(LT|lt)\.	{	/* RELOP LT*/
 	list_insert(yytext);
-	yylval.stringval = strdup(yytext);
+	yylval.symtab_ast.stringval = strdup(yytext);
 	return (RELOP);
 
 }
 
 \.(LE|le)\.	{	/* RELOP LE*/
 	list_insert(yytext);
-	yylval.stringval = strdup(yytext);
+	yylval.symtab_ast.stringval = strdup(yytext);
 	return (RELOP);
 
 }
 
 \.(EQ|eq)\.	{	/* RELOP EQ*/
 	list_insert(yytext);
-	yylval.stringval = strdup(yytext);
+	yylval.symtab_ast.stringval = strdup(yytext);
 	return (RELOP);
 }
 
 \.(NE|ne)\.	{	/* RELOP NE*/
 	list_insert(yytext);
-	yylval.stringval = strdup(yytext);
+	yylval.symtab_ast.stringval = strdup(yytext);
 	return (RELOP);
 }
 
 \.(TRUE|true)\.	{	/* LCONST_TRUE */
 	list_insert(yytext);
-	yylval.charval = 1;
+	yylval.symtab_ast.charval = 1;
 	return (LCONST);
 }
 
 
 \.(FALSE|false)\.	{	/* LCONST_FALSE */
 	list_insert(yytext);
-	yylval.charval = 0;
+	yylval.symtab_ast.charval = 0;
 	return (LCONST);
 }
 
@@ -190,7 +191,7 @@ C(AD*|D+)R	{	/* LISTFUNC */
 
 "+"|"-"	{	/* ADDOP */
 	list_insert(yytext);
-	yylval.charval = strcmp(yytext, "+") ? '-' : '+' ;
+	yylval.symtab_ast.charval = strcmp(yytext, "+") ? '-' : '+' ;
 	return (ADDOP);
 }
 
@@ -249,7 +250,7 @@ C(AD*|D+)R	{	/* LISTFUNC */
 }
 
 <INITIAL>"\""	{	/* Begin a string literal */
-	input_string = malloc (MAX_STR_LEN);
+	input_string = malloc(MAX_STR_LEN);
 	strcpy(input_string, "");
 	list_insert(yytext);
 	BEGIN(IN_STRING);
@@ -257,7 +258,7 @@ C(AD*|D+)R	{	/* LISTFUNC */
 <IN_STRING>{	/* Valid lexemes in a string */
 	"\""	{	/* End of a string literal */
 		list_insert(yytext);
-		yylval.stringval = strdup(input_string);
+		yylval.symtab_ast.stringval = strdup(input_string);
 		free(input_string);
 		BEGIN(INITIAL);
 		return (SCONST);

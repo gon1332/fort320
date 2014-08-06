@@ -205,7 +205,7 @@ body		:
 		;
 declarations	: declarations type vars
 		{
-			pch = strtok ($3,"%");
+			pch = strtok ($3.stringval, "%");
 			while (pch != NULL) {
 				curr = lookup_identifier(my_hashtable, pch, scope);
 				curr->type = $2.t;  /*gia ayth th malakia ta kanw ola*/
@@ -310,7 +310,7 @@ dim		: ICONST
 		| error
 		{
 			ERROR(stderr, ER_UNKNWN_CONST(FRED("")));
-			SEM_ERROR = 1;
+			// SEM_ERROR = 1;
 		}
 		;
 cblock_list	: cblock_list cblock
@@ -336,7 +336,7 @@ id_list		: id_list COMMA ID
 		| error
 		{
 			ERROR(stderr, "Unknown type of constant");
-			SEM_ERROR = 1;
+			// SEM_ERROR = 1;
 		}
 		;
 vals		: vals COMMA ID value_list
@@ -346,7 +346,7 @@ vals		: vals COMMA ID value_list
 				/* validate the consistency of the initializations */
 				if (curr->type != $4.info_str.type) {
 					ERROR(stderr, "Sematic Error2. Incorrect type");
-					SEM_ERROR = 1;
+					// SEM_ERROR = 1;
 				}
 				/* list - array check*/
 				if (curr->cat != $4.info_str.c_type) {
@@ -365,7 +365,7 @@ vals		: vals COMMA ID value_list
 
 					} else {
 						ERROR(stderr, "Sematic Error2. Incorrect category");
-						SEM_ERROR = 1;
+						// SEM_ERROR = 1;
 					}
 				} else {
 					/* !_insert_list_! */
@@ -376,7 +376,7 @@ vals		: vals COMMA ID value_list
 				/* if id is array or list we follow different procedures (me tous xwrous dedomenwn?)*/
 				/*if(initialize_id(curr,$4.str)){
 					ERROR(stderr, "Memory Allocation Error.");
-					SEM_ERROR = 1;
+					// SEM_ERROR = 1;
 				}*/
 
 			}
@@ -389,7 +389,7 @@ vals		: vals COMMA ID value_list
 				if(curr->type != $2.info_str.type){
 					/*printf("type %s and cat %s\n",typeNames[$2.type],catNames[$2.cat]);*/
 					ERROR(stderr, "Sematic Error1. Initialization");
-					SEM_ERROR = 1;
+					// SEM_ERROR = 1;
 				}
 				if (curr->cat != $2.info_str.c_type) {
 					if (curr->cat == C_list &&
@@ -409,7 +409,7 @@ vals		: vals COMMA ID value_list
 						ERROR(stderr, "Sematic Error1. Incorrect "
 							"category ID %s, type %s", catNames[curr->cat],
 										   catNames[$2.info_str.c_type]);
-						SEM_ERROR = 1;
+						// SEM_ERROR = 1;
 					}
 				} else{	/* !_insert_list_! */
 					curr->id_info.init_n.init = head_init;/*&($2.init);*/
@@ -419,7 +419,7 @@ vals		: vals COMMA ID value_list
 				/* if id is array or list we follow different procedures (me tous xwrous dedomenwn?)*/
 				/*if(initialize_id(curr,$2.str)){
 					ERROR(stderr, "Memory Allocation Error.");
-					SEM_ERROR = 1;
+					// SEM_ERROR = 1;
 				}*/
 			}
 		}
@@ -476,7 +476,7 @@ value		: repeat sign constant
 
 			if($1.intval < 0 && $1.intval != -1){
 				ERROR(stderr, "Negative operator in initialization semantics");
-				SEM_ERROR = 1;
+				// SEM_ERROR = 1;
 			} else {
 				/* init node initialization */
 				init = create_init_node();
@@ -488,7 +488,7 @@ value		: repeat sign constant
 					    $3.info_str.type == TY_logical ||
 					    $3.info_str.type == TY_string) {
 						ERROR(stderr, "Sematic fault. Incorrect type");
-						SEM_ERROR = 1;
+						// SEM_ERROR = 1;
 					} else {
 						if ($2.charval == '+') { /* nothing */ }
 						else {	/* ADDOP is '-' */
@@ -514,7 +514,7 @@ value		: repeat sign constant
 			if ($2.info_str.type == TY_character || $2.info_str.type == TY_logical ||
 			    $2.info_str.type == TY_string) {
 				ERROR(stderr, "Semantic fault. Incorrect type");
-				SEM_ERROR = 1;
+				// SEM_ERROR = 1;
 			} else {
 				$$.info_str.type = $2.info_str.type;
 				$$.info_str.c_type = C_variable;
@@ -594,7 +594,7 @@ simple_constant	: ICONST
 			ERROR(stderr, ER_UNKNWN_CONST(FRED("")));
 			$$.info_str.type = TY_invalid;
 			FLAG_ERROR = 1;
-			SEM_ERROR = 1;
+			// SEM_ERROR = 1;
 		}
 		;
 complex_constant: LPAREN RCONST COLON sign RCONST RPAREN %prec T_COMPLEX
@@ -616,7 +616,7 @@ statements	: statements labeled_statement
 		| error
 		{
 			ERROR(stderr, "Watch out the statements");
-			SEM_ERROR = 1;
+			// SEM_ERROR = 1;
 		}
 		;
 labeled_statement: label statement
@@ -813,7 +813,7 @@ init_values *create_init_node(void)
 	node = malloc(sizeof(init_values));
 	if (NULL == node) {
 		ERROR(stderr, "Memory Allocation Error\n");
-		SEM_ERROR = 1;
+		// SEM_ERROR = 1;
 	}
 
 	return node ;
@@ -832,7 +832,7 @@ init_values *initialize_node(init_values *node,
 
 	if (NULL == node) {
 		ERROR(stderr, "Warning cast to null structure\n ");
-		SEM_ERROR = 1;
+		// SEM_ERROR = 1;
 		return NULL;
 	}
 
@@ -860,7 +860,7 @@ init_values *initialize_node(init_values *node,
 		node->initialization.complex.c_real = constant.complex.c_real;
 		node->initialization.complex.c_imag = constant.complex.c_imag;
 		break;
-	default:
+	default:break;
 		/*nothing -> should not go here*/
 	}
 

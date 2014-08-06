@@ -7,7 +7,7 @@
 #include "../../../include/Utils/utils.h"
 
 /* void fprint_list (const char *before, const char *after)
- * 
+ *
  * Prints the list between 'before' and 'after' strings.
  */
 void LINE (const char *before, const char *after)
@@ -27,15 +27,15 @@ int ERROR (FILE *stream, const char *fmsg, ...)
 {
 	int ret;
 	va_list arg;
-	
+
 	ret = fprintf(stream, "%s:%d:%d.%d: error: ", INPUT_FILE_NAME, LINENO, FR_COL, TO_COL);
 
-	va_start(arg, fmsg);	
+	va_start(arg, fmsg);
 	ret += vfprintf (stream, fmsg, arg);
 	va_end(arg);
 
 	ret += fprintf(stream, "\n");
-	
+
 	return (ret);
 }
 
@@ -69,12 +69,12 @@ int convert_hex_bin_oct_to_dec (const char *input)
 	int result = 0;
 	int power = 0;
 	int i = 0;
-	
+
 	if (NULL == input) {
 		fprintf(stderr, "fort320: convert_hex_bin_oct_to_dec: error: NULL input.\n");
 		exit(EXIT_FAILURE);
 	}
-	
+
 	if ('0' == input[0]) {
 		if ('B' == input[1] || 'b' == input[1]) {
 			for (i = 2, power = strlen(input)-2-1; power >= 0 && input[i] != '\0'; power--, i++)
@@ -113,16 +113,16 @@ double convert_hex_bin_oct_to_rconst (const char *input)
 	int dot_pos = 0;
 	int power = 0;
 	int i = 0;
-	
+
 	if (NULL == input) {
 		fprintf(stderr, "fort320: convert_hex_bin_oct_to_dec: error: NULL input.\n");
 		exit(EXIT_FAILURE);
 	}
-	
+
 	if ('0' == input[0]) {
 		for (dot_pos = 0; input[dot_pos] != '.'; dot_pos++);
 		dot_pos++;
-	
+
 		if ('B' == input[1] || 'b' == input[1]) {
 			for (i = 2, power = dot_pos-3-1; input[i] != '\0'; i++) {
 				if ('.' != input[i]) {

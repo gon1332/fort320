@@ -4,12 +4,12 @@
 #include "../include/Utils/utils.h"
 #include "../include/InputBuffer/mylist.h"
 #include "../include/SymbolTable/hash_t.h"
+#include "../include/IR/AST.h"
 
 int main (int argc, char **argv)
 {
-	int token;
 	extern FILE *yyin;
-	extern hash_table_t *my_hashtable;	
+	extern hash_table_t *my_hashtable;
 
 	argv++, argc--;  /* skip over program name */
 	if (argc > 0) {
@@ -43,6 +43,6 @@ int main (int argc, char **argv)
 	/* Scan the file */
 	yyparse();
 	printf("Parse Completed.\n");
-	
-	return (0);
+
+	return 0;
 }

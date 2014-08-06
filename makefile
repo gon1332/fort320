@@ -2,7 +2,7 @@
 # Makefile for lexical and syntactic analyzer #
 #                    FORT320                  #
 #=-------------------------------------------=#
-OBJ_FILES =	fort320_ast_t.o fort320_utils.o fort320_list.o\
+OBJ_FILES =	fort320_ast_t.o fort320_utils.o fort320_list.o fort320_types.o\
 		fort320_sa.o fort320_la.o\
 		fort320_hash_t.o fort320_errcheck.o fort320_main.o
 EXEC	= ./fort320
@@ -14,8 +14,8 @@ BUILD	= ./build
 OBJS	= $(addprefix $(BUILD)/, $(OBJ_FILES))
 
 # Compiler stuff #
-CC	= gcc
-CFLAGS	= -g -Wall #-Wextra
+CC	= clang
+CFLAGS	= -std=c89 -g -Wall #-Wextra
 CLIBS	= -lfl -lm
 
 fort320: build_dir $(OBJS)
@@ -30,7 +30,8 @@ $(BUILD)/%.o:
 # Our extra libraries #
 $(BUILD)/fort320_utils.o: $(LIB)/Utils/utils.c $(INCLUDE)/Utils/utils.h
 $(BUILD)/fort320_list.o: $(LIB)/InputBuffer/mylist.c $(INCLUDE)/InputBuffer/mylist.h
-$(BUILD)/fort320_hash_t.o: $(LIB)/SymbolTable/hash_t.c  $(INCLUDE)/SymbolTable/hash_t.h 
+$(BUILD)/fort320_hash_t.o: $(LIB)/SymbolTable/hash_t.c  $(INCLUDE)/SymbolTable/hash_t.h
+$(BUILD)/fort320_types.o: $(LIB)/Types/types.c $(INCLUDE)/Types/types.h
 $(BUILD)/fort320_ast_t.o: $(LIB)/IR/AST.c  $(INCLUDE)/IR/AST.h
 $(BUILD)/fort320_errcheck.o: $(LIB)/DebugInfo/errcheck.c $(INCLUDE)/DebugInfo/errcheck.h
 
@@ -62,6 +63,7 @@ clean:
 	rm -f	$(SURFACE)/*~ $(INCLUDE)/*~ $(LIB)/*~ $(INCLUDE)/DebugInfo/*~\
 		$(INCLUDE)/InputBuffer/*~ $(INCLUDE)/IR/*~ $(INCLUDE)/SymbolTable/*~\
 		$(INCLUDE)/Utils/*~ $(LIB)/DebugInfo/*~ $(LIB)/InputBuffer/*~\
+		$(INCLUDE)/Types/*~ $(LIB)/Types/*~\
 		$(LIB)/IR/*~ $(LIB)/SymbolTable/*~ $(LIB)/Utils/*~
 	rm -f -r $(BUILD)
 	rm -f 	$(SURFACE)/fort320_la.c $(SURFACE)/lex.yy.c $(SURFACE)/fort320_sa.c\
