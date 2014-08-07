@@ -105,16 +105,16 @@
 
 %start program
 
-%type<symtab_ast> type
-%type<symtab_ast> vars
-%type<symtab_ast> undef_variable
-%type<symtab_ast> listspec
-%type<symtab_ast> dims
-%type<symtab_ast> dim
-%type<symtab_ast> id_list
+%type<symtab_ast.t> type
+%type<symtab_ast.stringval> vars
+%type<symtab_ast.stringval> undef_variable
+%type<symtab_ast.c_t> listspec
+%type<symtab_ast.stringval> dims
+%type<symtab_ast.stringval> dim
+%type<symtab_ast.stringval> id_list
 %type<symtab_ast> expression
 %type<symtab_ast> expressions
-%type<symtab_ast> listexpression
+%type<symtab_ast.v> listexpression
 %type<symtab_ast> simple_constant
 %type<symtab_ast> complex_constant
 %type<symtab_ast> constant
@@ -123,18 +123,18 @@
 %type<symtab_ast> value_list
 %type<symtab_ast> values
 %type<symtab_ast> value
-%type<symtab_ast> variable
-%type<symtab_ast> repeat
-%type<symtab_ast> sign
+%type<symtab_ast.t> variable
+%type<symtab_ast.intval> repeat
+%type<symtab_ast.charval> sign
 
 /*%type<params> formal_parameters
 */
 
-%token<symtab_ast> OROP
-%token<symtab_ast> ANDOP
-%token<symtab_ast> NOTOP
-%token<symtab_ast> RELOP
-%token<symtab_ast> ADDOP
+%token<symtab_ast.stringval> OROP
+%token<symtab_ast.stringval> ANDOP
+%token<symtab_ast.stringval> NOTOP
+%token<symtab_ast.stringval> RELOP
+%token<symtab_ast.charval> ADDOP
 %token MULOP
 %token DIVOP
 %token POWEROP
@@ -148,12 +148,12 @@
 %token LBRACK
 %token RBRACK
 
-%token<symtab_ast> ID
-%token<symtab_ast> ICONST
-%token<symtab_ast> RCONST
-%token<symtab_ast> LCONST
-%token<symtab_ast> CCONST
-%token<symtab_ast> SCONST
+%token<symtab_ast.stringval> ID
+%token<symtab_ast.intval> ICONST
+%token<symtab_ast.realval> RCONST
+%token<symtab_ast.charval> LCONST
+%token<symtab_ast.charval> CCONST
+%token<symtab_ast.stringval> SCONST
 
 %token FUNCTION
 %token SUBROUTINE
@@ -212,7 +212,7 @@ declarations	: declarations type vars
 			pch = strtok ($3.stringval, "%");
 			while (pch != NULL) {
 				curr = lookup_identifier(my_hashtable, pch, scope);
-				curr->type = $2.t;  /*gia ayth th malakia ta kanw ola*/
+				curr->type = $2;  /*gia ayth th malakia ta kanw ola*/
 				pch = strtok (NULL, "%");
 			}
 			free($3.stringval);
@@ -221,12 +221,12 @@ declarations	: declarations type vars
 		| declarations DATA vals
 		| /* empty */
 		;
-type		: INTEGER	{ $$.t = TY_integer; }
-		| REAL		{ $$.t = TY_real; }
-		| COMPLEX	{ $$.t = TY_complex; }
-		| LOGICAL	{ $$.t = TY_logical; }
-		| CHARACTER	{ $$.t = TY_character; }
-		| STRING	{ $$.t = TY_string; }
+type		: INTEGER	{ $$ = TY_integer; }
+		| REAL		{ $$ = TY_real; }
+		| COMPLEX	{ $$ = TY_complex; }
+		| LOGICAL	{ $$ = TY_logical; }
+		| CHARACTER	{ $$ = TY_character; }
+		| STRING	{ $$ = TY_string; }
 		;
 vars		: vars COMMA undef_variable
       		{
