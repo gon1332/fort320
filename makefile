@@ -4,7 +4,7 @@
 #=-------------------------------------------=#
 OBJ_FILES =	fort320_ast_t.o fort320_utils.o fort320_list.o fort320_types.o\
 		fort320_sa.o fort320_la.o\
-		fort320_hash_t.o fort320_errcheck.o fort320_main.o
+		fort320_hash_t.o fort320_errcheck.o fort320_strdup.o fort320_main.o
 EXEC	= ./fort320
 # Paths #
 INCLUDE	= ./include
@@ -15,7 +15,7 @@ OBJS	= $(addprefix $(BUILD)/, $(OBJ_FILES))
 
 # Compiler stuff #
 CC	= clang
-CFLAGS	= -std=c89 -g -Wall #-Wextra
+CFLAGS	= -std=c89 -Iinclude/ -g -Wall #-Wextra
 CLIBS	= -lfl -lm
 
 fort320: build_dir $(OBJS)
@@ -31,6 +31,7 @@ $(BUILD)/%.o:
 $(BUILD)/fort320_utils.o: $(LIB)/Utils/utils.c $(INCLUDE)/Utils/utils.h
 $(BUILD)/fort320_list.o: $(LIB)/InputBuffer/mylist.c $(INCLUDE)/InputBuffer/mylist.h
 $(BUILD)/fort320_hash_t.o: $(LIB)/SymbolTable/hash_t.c  $(INCLUDE)/SymbolTable/hash_t.h
+$(BUILD)/fort320_strdup.o: $(LIB)/Utils/strdup.c $(INCLUDE)/Utils/strdup.h
 $(BUILD)/fort320_types.o: $(LIB)/Types/types.c $(INCLUDE)/Types/types.h
 $(BUILD)/fort320_ast_t.o: $(LIB)/IR/AST.c  $(INCLUDE)/IR/AST.h
 $(BUILD)/fort320_errcheck.o: $(LIB)/DebugInfo/errcheck.c $(INCLUDE)/DebugInfo/errcheck.h
