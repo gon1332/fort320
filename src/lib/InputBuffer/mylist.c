@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../../../include/InputBuffer/mylist.h"
+#include "InputBuffer/mylist.h"
 
 
 /* void list_init (void)

@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../../../include/SymbolTable/hash_t.h"
+#include "SymbolTable/hash_t.h"
+#include "Utils/strdup.h"
 
 
 hash_table_t *create_hash_table(int size)

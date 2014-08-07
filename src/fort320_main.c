@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "../include/Utils/utils.h"
-#include "../include/InputBuffer/mylist.h"
-#include "../include/SymbolTable/hash_t.h"
-#include "../include/IR/AST.h"
+#include "Utils/utils.h"
+#include "InputBuffer/mylist.h"
+#include "SymbolTable/hash_t.h"
+#include "IR/AST.h"
 
 int main (int argc, char **argv)
 {

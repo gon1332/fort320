@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "../../../include/DebugInfo/errcheck.h"
+#include "DebugInfo/errcheck.h"
 
 
 /* void __safe_call (void *err,        Return value from function call

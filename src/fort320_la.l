@@ -6,10 +6,11 @@
  */
 
 %{
-	#include "../include/InputBuffer/mylist.h"
-	#include "../include/Utils/utils.h"
-	#include "../include/SymbolTable/hash_t.h"
-	#include "../include/IR/AST.h"
+	#include "InputBuffer/mylist.h"
+	#include "Utils/utils.h"
+        #include "Utils/strdup.h"
+	#include "SymbolTable/hash_t.h"
+	#include "IR/AST.h"
 	#include "tok.h"
         #include <string.h>
 

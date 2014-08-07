@@ -1,12 +1,13 @@
 %{
 	#include <stdio.h>
         #include <string.h>
-	#include "../include/SymbolTable/hash_t.h"
-	#include "../include/IR/AST.h"
-	#include "../include/Utils/utils.h"
-        #include "../include/Utils/colors.h"
-	#include "../include/Types/types.h"
-        #include "../include/DebugInfo/forterrors.h"
+	#include "SymbolTable/hash_t.h"
+	#include "IR/AST.h"
+	#include "Utils/utils.h"
+        #include "Utils/strdup.h"
+        #include "Utils/colors.h"
+	#include "Types/types.h"
+        #include "DebugInfo/forterrors.h"
 
 	/* variable declaration */
 	int scope = 0;	/* scope (or nesting depth) defines where each variable
@@ -38,6 +39,9 @@
 	                              Type type_,
 	                              initialization_t constant,
 	                              int no_of_occurences);
+
+        /* Last but not least: */
+        int yylex(void);
 %}
 
 %union
@@ -310,7 +314,7 @@ dim		: ICONST
 		| error
 		{
 			ERROR(stderr, ER_UNKNWN_CONST(FRED("")));
-			// SEM_ERROR = 1;
+			/* SEM_ERROR = 1; */
 		}
 		;
 cblock_list	: cblock_list cblock
@@ -336,7 +340,7 @@ id_list		: id_list COMMA ID
 		| error
 		{
 			ERROR(stderr, "Unknown type of constant");
-			// SEM_ERROR = 1;
+			/* SEM_ERROR = 1; */
 		}
 		;
 vals		: vals COMMA ID value_list
@@ -346,7 +350,7 @@ vals		: vals COMMA ID value_list
 				/* validate the consistency of the initializations */
 				if (curr->type != $4.info_str.type) {
 					ERROR(stderr, "Sematic Error2. Incorrect type");
-					// SEM_ERROR = 1;
+					/* SEM_ERROR = 1; */
 				}
 				/* list - array check*/
 				if (curr->cat != $4.info_str.c_type) {
@@ -365,7 +369,7 @@ vals		: vals COMMA ID value_list
 
 					} else {
 						ERROR(stderr, "Sematic Error2. Incorrect category");
-						// SEM_ERROR = 1;
+						/* SEM_ERROR = 1; */
 					}
 				} else {
 					/* !_insert_list_! */
@@ -389,7 +393,7 @@ vals		: vals COMMA ID value_list
 				if(curr->type != $2.info_str.type){
 					/*printf("type %s and cat %s\n",typeNames[$2.type],catNames[$2.cat]);*/
 					ERROR(stderr, "Sematic Error1. Initialization");
-					// SEM_ERROR = 1;
+					/* SEM_ERROR = 1; */
 				}
 				if (curr->cat != $2.info_str.c_type) {
 					if (curr->cat == C_list &&
@@ -409,7 +413,7 @@ vals		: vals COMMA ID value_list
 						ERROR(stderr, "Sematic Error1. Incorrect "
 							"category ID %s, type %s", catNames[curr->cat],
 										   catNames[$2.info_str.c_type]);
-						// SEM_ERROR = 1;
+						/* SEM_ERROR = 1; */
 					}
 				} else{	/* !_insert_list_! */
 					curr->id_info.init_n.init = head_init;/*&($2.init);*/
@@ -476,7 +480,7 @@ value		: repeat sign constant
 
 			if($1.intval < 0 && $1.intval != -1){
 				ERROR(stderr, "Negative operator in initialization semantics");
-				// SEM_ERROR = 1;
+				/* SEM_ERROR = 1;*/
 			} else {
 				/* init node initialization */
 				init = create_init_node();
@@ -488,7 +492,7 @@ value		: repeat sign constant
 					    $3.info_str.type == TY_logical ||
 					    $3.info_str.type == TY_string) {
 						ERROR(stderr, "Sematic fault. Incorrect type");
-						// SEM_ERROR = 1;
+						/* SEM_ERROR = 1; */
 					} else {
 						if ($2.charval == '+') { /* nothing */ }
 						else {	/* ADDOP is '-' */
@@ -514,7 +518,7 @@ value		: repeat sign constant
 			if ($2.info_str.type == TY_character || $2.info_str.type == TY_logical ||
 			    $2.info_str.type == TY_string) {
 				ERROR(stderr, "Semantic fault. Incorrect type");
-				// SEM_ERROR = 1;
+				/* SEM_ERROR = 1; */
 			} else {
 				$$.info_str.type = $2.info_str.type;
 				$$.info_str.c_type = C_variable;
@@ -594,7 +598,7 @@ simple_constant	: ICONST
 			ERROR(stderr, ER_UNKNWN_CONST(FRED("")));
 			$$.info_str.type = TY_invalid;
 			FLAG_ERROR = 1;
-			// SEM_ERROR = 1;
+			/* SEM_ERROR = 1; */
 		}
 		;
 complex_constant: LPAREN RCONST COLON sign RCONST RPAREN %prec T_COMPLEX
@@ -616,7 +620,7 @@ statements	: statements labeled_statement
 		| error
 		{
 			ERROR(stderr, "Watch out the statements");
-			// SEM_ERROR = 1;
+			/* SEM_ERROR = 1; */
 		}
 		;
 labeled_statement: label statement
@@ -650,9 +654,10 @@ variable	: ID LPAREN expressions RPAREN
 		| LISTFUNC LPAREN expression RPAREN
 		{
 			$$.v.type = $3.v.type;
-                        // When I implement the LISTFUNC feature:
-                        // $$.ast.expr_node = mknode_paren(mkleaf_listfunc($1.stringval), $3.ast.expr_node);
-		}
+                        /* When I implement the LISTFUNC feature:
+                        *//* $$.ast.expr_node = mknode_paren(mkleaf_listfunc($1.stringval), $3.ast.expr_node);
+		        */
+                }
 		| ID
 		{
 			list_t *id = context_check($1.stringval);
@@ -687,7 +692,7 @@ listexpression	: LBRACK expressions RBRACK %prec T_BRACKETS
 		| LBRACK RBRACK %prec T_BRACKETS
                 {
                         $$.ast.expr_node = mknode_brack(NULL, NULL);
-                        //$$.v.type = NULL;
+                        /* $$.v.type = NULL; */
                 }
 		;
 goto_statement	: GOTO label { mkcmd_assign(mkleaf_int($2.intval)); }	/*evala cmd node edw !!!*/
@@ -813,7 +818,7 @@ init_values *create_init_node(void)
 	node = malloc(sizeof(init_values));
 	if (NULL == node) {
 		ERROR(stderr, "Memory Allocation Error\n");
-		// SEM_ERROR = 1;
+		/* SEM_ERROR = 1; */
 	}
 
 	return node ;
@@ -832,7 +837,7 @@ init_values *initialize_node(init_values *node,
 
 	if (NULL == node) {
 		ERROR(stderr, "Warning cast to null structure\n ");
-		// SEM_ERROR = 1;
+		/* SEM_ERROR = 1; */
 		return NULL;
 	}
 

@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <math.h>
-#include "../../../include/InputBuffer/mylist.h"
-#include "../../../include/Utils/utils.h"
+#include "InputBuffer/mylist.h"
+#include "Utils/utils.h"
 
 /* void fprint_list (const char *before, const char *after)
  *

@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../../../include/IR/AST.h"
-#include "../../../include/DebugInfo/errcheck.h"
+#include "IR/AST.h"
+#include "Utils/strdup.h"
+#include "DebugInfo/errcheck.h"
 
 
 char *expr_lookup[26] = {
