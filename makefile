@@ -18,11 +18,17 @@ CC	= clang
 CFLAGS	= -std=c89 -Iinclude/ -g -Wall #-Wextra
 CLIBS	= -lfl -lm
 
-fort320: build_dir $(OBJS)
+fort320: info build_dir $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $(EXEC) $(CLIBS)
 
 build_dir:
 	mkdir -p $(BUILD)
+
+info:
+	$(info  + ===========================================================)
+	$(info  | Compiling and building *fort320*                           )
+	$(info  + ===========================================================)
+
 
 $(BUILD)/%.o:
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -61,6 +67,9 @@ $(BUILD)/fort320_main.o: $(SURFACE)/fort320_main.c
 #fort320_la.o fort320_main.o		: tok.h
 
 clean:
+	$(info  + ===========================================================)
+	$(info  | Cleaning build directory and temporary files               )
+	$(info  + ===========================================================)
 	rm -f	$(SURFACE)/*~ $(INCLUDE)/*~ $(LIB)/*~ $(INCLUDE)/DebugInfo/*~\
 		$(INCLUDE)/InputBuffer/*~ $(INCLUDE)/IR/*~ $(INCLUDE)/SymbolTable/*~\
 		$(INCLUDE)/Utils/*~ $(LIB)/DebugInfo/*~ $(LIB)/InputBuffer/*~\
