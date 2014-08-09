@@ -6,6 +6,8 @@
 #include "SymbolTable/hash_t.h"
 #include "IR/AST.h"
 
+void yyparse(void);
+
 int main (int argc, char **argv)
 {
 	extern FILE *yyin;

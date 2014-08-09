@@ -1,7 +1,7 @@
 #ifndef __HASH_T_H__
 #define __HASH_T_H__
 /*Hash table*/
-#include "../Types/types.h"
+#include "Types/types.h"
 
 /*************************** crappy initial id value info that i think goes to hash table **********************************/
 /* Basic Types
@@ -28,16 +28,15 @@ struct params_t {
 };
 
 /* init_values_t
- * list that stores initial values for: (C.) lists ,(D.) C_arrays, (F.) C_variable 
+ * list that stores initial values for: (C.) lists ,(D.) C_arrays, (F.) C_variable
  */
- 
 typedef struct init_values_t{
 	int num;				/* num*int:: num is initialized num times default is 1 */
 	initialization_t initialization;
 	struct init_values_t *next;
 } init_values;
 
- 
+
 /*union declaration
  * Stores important information (params, callables..) associated with the id.
  */
@@ -45,17 +44,16 @@ typedef union {
 	struct params_t *params;	/* A. parameter list - used in function calls */
 	int const_value;		/* B. const values */
 	/*char *dimensions;*/		/* C. Dimensions of Lists and Arrays */
-	
-	
+
 	/*init_values *init;*/		/* F. Initializations */
-	
+
 	/*C,D,F proposed solution */
 	struct{
 		char *dimensions;		/* for variables is custom NULL */
 		init_values *init;		/* F. Initializations */
 	}init_n;
-	
-} info_str;	
+
+} info_str;
 
 /********************************************** Hash Table ************************************************************/
 
@@ -66,10 +64,10 @@ typedef struct _list_t_ {
 	Type type;			/* type of id (basic types: int,real...) */
 	Complex_Type cat;		/* category of id (common_block, lists, arrays etc.) */
 	int is_function;		/* 0: variable, 1: function, 2: subroutine */
-	
+
 	info_str id_info;		/* information regarding id::union points to many id_types */
-	
-    struct _list_t_ *next;
+
+        struct _list_t_ *next;
 	struct _list_t_ *prev;
 } list_t;
 
@@ -81,7 +79,6 @@ typedef struct _nd_stack_t {
 
 	struct _nd_stack_t *next;
 	struct _nd_stack_t *prev;
-	
 } nd_stack_t;
 /*Stack*/
 
@@ -96,8 +93,8 @@ typedef struct _hash_table_t_ {
 /********************************************* Functions ****************************************************************/
 /*function declarations for hash_table*/
 hash_table_t *create_hash_table(int size);
-unsigned int hash(hash_table_t *hashtable, char *str,int embeleia);
-list_t *lookup_identifier(hash_table_t *hashtable, char *str,int embeleia);
+unsigned int hash(hash_table_t *hashtable, char *str);
+list_t *lookup_identifier(hash_table_t *hashtable, char *str, int embeleia);
 int add_identifier(hash_table_t *hashtable, char *str, int embeleia, Type type, Complex_Type cat);
 void free_table(hash_table_t *hashtable);
 int delete_id(hash_table_t *hashtable, list_t *d_node, int table_num);
@@ -106,7 +103,7 @@ void print_hashtable(hash_table_t *hashtable);
 
 /*function declarations for stack*/
 int add_to_stack(hash_table_t *hashtable, list_t *node, int table_n);
-int delete_scope(hash_table_t *hashtable,int scope);
+int delete_scope(hash_table_t *hashtable, int scope);
 void print_stack(hash_table_t *hashtable);
 /*function declarations for stack*/
 

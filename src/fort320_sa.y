@@ -41,7 +41,7 @@
 	                              int no_of_occurences);
 
         /* Last but not least: */
-        int yylex(void);
+        extern int yylex(void);
 %}
 
 %union
@@ -97,10 +97,10 @@
                         AST_expr_T *expr_node;
                         AST_cmd_T  *cmd_node;
                 } ast;
-        } symtab_ast;
 
-/*A. function param list */
-	struct params_t *params;
+                /*A. function param list */
+	        struct params_t *params;
+        } symtab_ast;
 }
 
 %start program
@@ -126,9 +126,8 @@
 %type<symtab_ast> variable
 %type<symtab_ast.intval> repeat
 %type<symtab_ast.charval> sign
+%type<symtab_ast.params> formal_parameters
 
-/*%type<params> formal_parameters
-*/
 
 %token<symtab_ast.stringval> OROP
 %token<symtab_ast.stringval> ANDOP
@@ -209,7 +208,7 @@ body		:
 		;
 declarations	: declarations type vars
 		{
-                        printf("vars = %s", $3);
+                        printf("vars = count\n");
 			pch = strtok ($3, "%");
 			while (pch != NULL) {
 				curr = lookup_identifier(my_hashtable, pch, scope);
@@ -241,7 +240,7 @@ vars		: vars COMMA undef_variable
 		| undef_variable
 		{
 			if ($1 != NULL)
-				$$ = 1;
+				$$ = $1;
 			else
 				$$ = NULL;
 		}
@@ -431,7 +430,7 @@ vals		: vals COMMA ID value_list
 		;
 value_list	: DIVOP values DIVOP
 		{
-			$$.info_str.type = $2.info_str.type;
+			$$.info_str = $2.info_str;
 		}
 		;
 values		: values COMMA value
@@ -662,6 +661,10 @@ variable	: ID LPAREN expressions RPAREN
 		| ID
 		{
 			list_t *id = context_check($1);
+                        if (id)
+                                $$.t = id->type;
+                        else
+                                $$.t = TY_invalid;
 			$$.ast.expr_node = mkleaf_id(id);
 		}
 		;
@@ -677,7 +680,7 @@ expression	: expression OROP expression	{ $$.ast.expr_node = mknode_or($1.ast.ex
 		| expression POWEROP expression	{ $$.ast.expr_node = mknode_pow($1.ast.expr_node, $3.ast.expr_node);  }
 		| NOTOP expression		{ $$.ast.expr_node = mknode_not($2.ast.expr_node);      }
 		| ADDOP expression		{ $$.ast.expr_node = mknode_psign($2.ast.expr_node);    }
-		| variable			{ $$.ast.expr_node = $1.ast.expr_node; $$.v = $1.v;     }
+		| variable			{ $$.ast.expr_node = $1.ast.expr_node; $$.v.type = $1.t;     }
 		| simple_constant		{ $$.ast.expr_node = $1.ast.expr_node; }
 		| LENGTH LPAREN expression RPAREN	{ $$.ast.expr_node = $3.ast.expr_node; }
 		| NEW LPAREN expression RPAREN		{ $$.ast.expr_node = $3.ast.expr_node; }
@@ -717,7 +720,10 @@ read_list	: read_list COMMA read_item
 		| read_item
 		;
 read_item	: variable
-		| LPAREN read_list COMMA ID ASSIGN iter_space RPAREN {/*add_identifier(my_hashtable, $4, scope, 1);*/}
+		| LPAREN read_list COMMA ID ASSIGN iter_space RPAREN
+                {
+                        context_check($4);
+                }
 		;
 iter_space	: expression COMMA expression step
 		;
@@ -728,7 +734,10 @@ write_list	: write_list COMMA write_item
 		| write_item
 		;
 write_item	: expression
-		| LPAREN write_list COMMA ID ASSIGN iter_space RPAREN {/*add_identifier(my_hashtable, $4, scope, 1);*/}
+		| LPAREN write_list COMMA ID ASSIGN iter_space RPAREN
+                {
+                        context_check($4);
+                }
 		;
 compound_statement: branch_statement
 		| loop_statement
@@ -738,20 +747,124 @@ branch_statement: IF LPAREN expression RPAREN THEN body tail
 tail		: ELSE body ENDIF
 		| ENDIF
 		;
-loop_statement	: DO ID ASSIGN iter_space body ENDDO {/*add_identifier(my_hashtable, $2, scope, 1);*/}
+loop_statement	: DO ID ASSIGN iter_space body ENDDO
+                {
+                        context_check($2);
+                }
 		;
 subprograms	: subprograms subprogram
 		| /* empty */
 		;
 subprogram	: {scope++;/*put*/} header {scope--;/*do not pop anything*/} body END
-		| error END { ERROR(stdout, "Syntax error in subprogram"); }
+		| error END
+                {
+                        ERROR(stdout, "Syntax error in subprogram");
+                }
 		;
-header		: type listspec FUNCTION ID LPAREN formal_parameters RPAREN {/*add_identifier(my_hashtable, $4, scope, 3);*/}
-		| SUBROUTINE ID LPAREN formal_parameters RPAREN {/*add_identifier(my_hashtable, $2, scope, 4);*/}
-		| SUBROUTINE ID {/*add_identifier(my_hashtable, $2, scope, 4);*/}
+header		: type listspec FUNCTION ID LPAREN formal_parameters RPAREN
+                {
+                        curr = install ($1, $2, $4);
+			if (curr == NULL) {			/* lookup returned null */
+				curr = context_check($4);	/* return the node i just put */
+				/*printf("helloffbshdfb");*/
+				curr->is_function = 1;		/* recognise id as function */
+
+				/* functions should have at least 1 parameter */
+				if ($6 != NULL) {
+					curr->id_info.params = $6;
+				} else {
+					ERROR(stderr, "No arguments to function: %s declaration", curr->str);
+					/* SEM_ERROR = 1; */
+				}
+			}
+                }
+		| SUBROUTINE ID LPAREN formal_parameters RPAREN
+                {
+                        curr = install(TY_unknown, C_unknown, $2);	/* subroutines do not return sth */
+
+			if (curr == NULL) {				/* lookup returned null */
+				curr = context_check($2);		/* return the node i just put */
+				curr->is_function = 2;			/* recognise id as subroutine */
+
+				/* Subroutines can be parameterless */
+				curr->id_info.params = $4;
+			}
+
+
+                }
+		| SUBROUTINE ID
+                {
+                        curr = install (TY_unknown, C_unknown, $2);	/* subroutines do not return sth */
+
+			if(curr == NULL){				/* lookup returned null */
+				curr = context_check($2);		/* return the node i just put */
+				curr->is_function = 2;			/* recognise id as subroutine */
+
+				/* Subroutines can be parameterless */
+				curr->id_info.params = NULL;
+			}
+                }
 		;
 formal_parameters: type vars COMMA formal_parameters
+                 {
+                        struct params_t *curr_pl/*, *curr_papa*/;
+
+			curr_pl = $4;
+
+			printf("\nVARS %s \n",$2);
+			/* process each id in string */
+			pch = strtok ($2,"%");
+			while (pch != NULL) {
+				curr = lookup_identifier(my_hashtable, pch, scope);
+				curr->type = $1;					/* id is defined here */
+				/* add the parameter information to the params list */
+				/* Evaluation strategy :: by value or by reference */
+				/* if id string, array or list then we have eval by reference */
+				if( curr->type == TY_string || curr->cat == C_list || curr->cat == C_array)
+					curr_pl = insert_params(curr_pl, $1, 1, pch);
+				else	/* in any other case we have eval by value (for now...) */
+					curr_pl = insert_params(curr_pl, $1, 0, pch);
+
+				pch = strtok (NULL, "%");
+			}
+			/*for (curr_papa = curr_pl; curr_papa != NULL; curr_papa = curr_papa->next){
+				printf("PAPA: %s\n",curr_papa->p_name);
+			}*/
+			free($2);
+			$$ = curr_pl;
+			curr_pl = NULL;		/* important: pointer has to be reinitialized for next iteration */
+
+
+                }
 		| type vars
+                {
+                        struct params_t *curr_pl/*, *curr_papa*/;
+
+                        printf("\nVARS %s \n",$2);
+
+                        /* process each id in string */
+			pch = strtok ($2,"%");
+			while (pch != NULL) {
+				curr = lookup_identifier(my_hashtable, pch, scope);
+				curr->type = $1;					/* id is defined here */
+				/* add the parameter information to the params list */
+				/* Evaluation strategy :: by value or by reference */
+				/* if id string, array or list then we have eval by reference */
+				if( curr->type == TY_string || curr->cat == C_list || curr->cat == C_array)
+					curr_pl = insert_params(curr_pl, $1, 1, pch);
+				else	/* in any other case we have eval by value (for now...) */
+					curr_pl = insert_params(curr_pl, $1, 0, pch);
+				pch = strtok (NULL, "%");
+			}
+			/*for (curr_papa = curr_pl; curr_papa != NULL; curr_papa = curr_papa->next){
+				printf("PAPA: %s\n",curr_papa->p_name);
+			}*/
+			/* give the address of the list */
+			$$ = curr_pl;
+			free($2);
+			curr_pl = NULL;		/* important: pointer has to be reinitialized for next iteration*/
+
+                }
 		;
 %%
 

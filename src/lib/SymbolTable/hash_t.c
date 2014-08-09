@@ -36,7 +36,7 @@ hash_table_t *create_hash_table(int size)
 /* Hash function
 *
 */
-unsigned int hash(hash_table_t *hashtable, char *str, int embeleia)
+unsigned int hash(hash_table_t *hashtable, char *str)
 {
 	unsigned int hashval = 0;
 
@@ -51,7 +51,7 @@ unsigned int hash(hash_table_t *hashtable, char *str, int embeleia)
 list_t *lookup_identifier(hash_table_t *hashtable, char *str,int embeleia)
 {
     list_t *list;
-    unsigned int hashval = hash(hashtable, str, embeleia);
+    unsigned int hashval = hash(hashtable, str);
 
     /* Go to the correct list based on the hash value and see if str is
      * in the list.  If it is, return a pointer to the list element.
@@ -71,7 +71,7 @@ int add_identifier(hash_table_t *hashtable, char *str, int embeleia, Type type, 
 {
     list_t *new_list;
     list_t *current_list;
-    unsigned int hashval = hash(hashtable, str, embeleia);
+    unsigned int hashval = hash(hashtable, str);
 
     /* Attempt to allocate memory for list */
     if ((new_list = malloc(sizeof(list_t))) == NULL) return 1;
