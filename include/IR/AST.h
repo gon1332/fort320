@@ -1,8 +1,5 @@
-#ifndef __AST_H__
-#define __AST_H__
-
-#define AST_LEAF 0
-#define AST_NODE 1
+#ifndef AST_H
+#define AST_H
 
 typedef enum {
 	EXPR_ID=0, EXPR_INT, EXPR_REAL,  EXPR_BOOL,   EXPR_STR,   EXPR_CHAR,
@@ -17,13 +14,13 @@ typedef enum {
 	CMD_C_FLOW,   CMD_LOOP
 } CmdNodeTag;
 
-char *expr_lookup[26];
-char *cmds_lookup[8];
+extern char *expr_lookup[];
+extern char *cmds_lookup[];
 
 struct ExprNode {
 	ExprNodeTag kind;
 	union {
-		int              intval;	/* ---- */ 
+		int              intval;	/* ---- */
 		double           realval;	/*      */
 		char             charval;	/* leaf */
 		char            *stringval;	/*      */
@@ -44,15 +41,18 @@ struct CmdNode {
 
 typedef struct CmdNode  AST_cmd_T;
 
-AST_cmd_T  *AST_head, *AST_tail;
+/*  -----   GLOBAL INDECES   ----------------------------------------------  */
+AST_cmd_T  *AST_head,   /* Points to the first command of the program. */
+           *AST_tail;   /* Points to the last command of the program. */
 
+/*  -----   MACRO DEFINITIONS   -------------------------------------------  */
 #define mknode_plus(y,z)	mknode(EXPR_PLUS,y,z)
 #define mknode_minus(y,z)	mknode(EXPR_MINUS,y,z)
 #define mknode_mul(y,z)		mknode(EXPR_MUL,y,z)
 #define mknode_div(y,z)		mknode(EXPR_DIV,y,z)
 #define mknode_pow(y,z)		mknode(EXPR_POW,y,z)
 #define mknode_paren(y,z)	mknode(EXPR_PAREN,y,z)	/* y(z) */
-#define mknode_assign(y,z)	mknode(EXPR_ASSIGN_EXPR,y,z)
+#define mknode_assign(y,z)	mknode(EXPR_ASSIGN,y,z)
 #define mknode_colon(y,z)	mknode(EXPR_COLON,y,z)
 #define mknode_brack(y,z)	mknode(EXPR_BRACK,y,z)  /* y[z] */
 #define mknode_comma(y,z)	mknode(EXPR_COMMA,y,z)
@@ -76,16 +76,21 @@ AST_cmd_T  *AST_head, *AST_tail;
 #define mkcmd_ctrl_flow(x)	mkcmd(CMD_C_FLOW,NULL,NULL,NULL)
 #define mkcmd_loop(x,y)		mkcmd(CMD_LOOP,x,y,NULL)
 
-extern AST_expr_T *mkleaf_id    (void *id_entry);
-extern AST_expr_T *mkleaf_int   (register          int number);
-extern AST_expr_T *mkleaf_real  (register          double number);
-extern AST_expr_T *mkleaf_char  (register unsigned char character);
-extern AST_expr_T *mkleaf_bool  (register unsigned char logical);
-extern AST_expr_T *mkleaf_string(register const    char *string);
-extern AST_expr_T *mknode       (ExprNodeTag op, AST_expr_T *ch_1,
-                                 AST_expr_T *ch_2);
-extern AST_cmd_T  *mkcmd        (CmdNodeTag cmd, AST_expr_T *ch_1,
-                                 AST_cmd_T *ch_2, AST_cmd_T *ch_3);
+/*  -----   EXTERNAL FUNCTION DECLARATIONS   ------------------------------  */
+extern AST_expr_T *mkleaf_id    (                  void   *id_entry);
+extern AST_expr_T *mkleaf_int   (register          int     number);
+extern AST_expr_T *mkleaf_real  (register          double  number);
+extern AST_expr_T *mkleaf_char  (register unsigned char    character);
+extern AST_expr_T *mkleaf_bool  (register unsigned char    logical);
+extern AST_expr_T *mkleaf_string(register const    char   *string);
+extern AST_expr_T *mknode       (ExprNodeTag  op,
+                                 AST_expr_T  *ch_1,
+                                 AST_expr_T  *ch_2);
+extern AST_cmd_T  *mkcmd        (CmdNodeTag   cmd,
+                                 AST_expr_T  *ch_1,
+                                 AST_cmd_T   *ch_2,
+                                 AST_cmd_T   *ch_3);
 extern void AST_init  (void);
-extern void print_expr(AST_expr_T *root);
-#endif	/* __AST_H__ */
+extern void print_ast (void);
+
+#endif	/* AST_H */

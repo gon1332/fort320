@@ -17,7 +17,12 @@ char *cmds_lookup[8] = {
 };
 
 
-/*************************************************************************//**
+/*  -----   INTERNAL FUNCTION DECLARATIONS   ------------------------------  */
+static void print_expr(AST_expr_T *root);
+static void print_cmd (AST_cmd_T  *root);
+
+
+/**************************************************************************//**
  * AST_expr_T *mkleaf_id (list_t *):
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Creates a leaf node for an id containing a pointer to the id entry in the
@@ -37,7 +42,7 @@ AST_expr_T *mkleaf_id(void *id_entry)
 	return(ret);
 }
 
-/*************************************************************************//**
+/**************************************************************************//**
  * AST_expr_T *mkleaf_int (register int):
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Creates a leaf node for an integer containing the value of it.
@@ -56,7 +61,7 @@ AST_expr_T *mkleaf_int(register int number)
 	return(ret);
 }
 
-/*************************************************************************//**
+/**************************************************************************//**
  * AST_expr_T *mkleaf_double (register double):
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Creates a leaf node for a double containing the value of it.
@@ -75,7 +80,7 @@ AST_expr_T *mkleaf_real(register double number)
 	return(ret);
 }
 
-/*************************************************************************//**
+/**************************************************************************//**
  * AST_expr_T *mkleaf_char (register unsigned char)
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Creates a leaf node for a character containing the value of it.
@@ -94,7 +99,7 @@ AST_expr_T *mkleaf_char(register unsigned char character)
 	return(ret);
 }
 
-/*************************************************************************//**
+/**************************************************************************//**
  * AST_expr_T *mkleaf_bool (register unsigned char)
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Creates a leaf node for a boolean containing the value of it.
@@ -113,7 +118,7 @@ AST_expr_T *mkleaf_bool(register unsigned char logical)
 	return(ret);
 }
 
-/*************************************************************************//**
+/**************************************************************************//**
  * AST_expr_T *mkleaf_string (register char *)
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Creates a leaf node for a string containing the value of it.
@@ -132,7 +137,7 @@ AST_expr_T *mkleaf_string(register const char *string)
 	return(ret);
 }
 
-/*************************************************************************//**
+/**************************************************************************//**
  * AST_expr_T *mknode (ExprNodeTag, AST_expr_T, AST_expr_T)
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Creates a node for the ExprNodeTag expression which includes at most two
@@ -157,7 +162,7 @@ AST_expr_T *mknode(
 	return(ret);
 }
 
-/*************************************************************************//**
+/**************************************************************************//**
  * AST_expr_T *mk_cmd (CmdNodeTag, AST_expr_T, AST_cmd_T, AST_cmd_T)
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Creates a command node for the CmdNodeTag command which includes one
@@ -195,7 +200,7 @@ AST_cmd_T *mkcmd(
 	return(ret);
 }
 
-/*************************************************************************//**
+/**************************************************************************//**
  * void AST_init (void)
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Initializes the single-linked list without sentinel.
@@ -208,12 +213,24 @@ void AST_init(void)
 	return;
 }
 
-/*************************************************************************//**
- * void print_expr (AST_expr_T)
+/**************************************************************************//**
+ * void print_ast (void)
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Prints the AST.
+ *****************************************************************************/
+void print_ast(void)
+{
+        AST_cmd_T *curr;
+        for (curr = AST_head; curr != AST_tail; curr = curr->next)
+                print_cmd(curr);
+}
+
+/**************************************************************************//**
+ * static void print_expr (AST_expr_T)
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Prints the given expression recursively.
  *****************************************************************************/
-void print_expr(AST_expr_T *root)
+static void print_expr(AST_expr_T *root)
 {
 	if (root->kind <= 5) {
 		printf("%s", expr_lookup[root->kind]);
@@ -238,3 +255,11 @@ void print_expr(AST_expr_T *root)
 		puts("");
 	}
 }
+
+/* TODO: gon1332 Print command nodes. Sat 09 Aug 2014 06:01:37 PM UTC */
+static void print_cmd(AST_cmd_T *root)
+{
+        ;
+}
+
+
