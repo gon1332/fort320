@@ -53,6 +53,7 @@ Session.vim
 # Project files/directories and Test cases
 # =========================================
 *.f
+test/
 build/
 notes/
 README.FIRST
