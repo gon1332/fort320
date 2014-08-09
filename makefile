@@ -15,7 +15,7 @@ OBJS	= $(addprefix $(BUILD)/, $(OBJ_FILES))
 
 # Compiler stuff #
 CC	= clang
-CFLAGS	= -std=c89 -Iinclude/ -g -Wall #-Wextra
+CFLAGS	= -std=c89 -Iinclude/ -g -Wall -Wextra
 CLIBS	= -lfl -lm
 
 fort320: info build_dir $(OBJS)
@@ -34,10 +34,10 @@ $(BUILD)/%.o:
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 # Our extra libraries #
+$(BUILD)/fort320_strdup.o: $(LIB)/Utils/strdup.c $(INCLUDE)/Utils/strdup.h
 $(BUILD)/fort320_utils.o: $(LIB)/Utils/utils.c $(INCLUDE)/Utils/utils.h
 $(BUILD)/fort320_list.o: $(LIB)/InputBuffer/mylist.c $(INCLUDE)/InputBuffer/mylist.h
 $(BUILD)/fort320_hash_t.o: $(LIB)/SymbolTable/hash_t.c  $(INCLUDE)/SymbolTable/hash_t.h
-$(BUILD)/fort320_strdup.o: $(LIB)/Utils/strdup.c $(INCLUDE)/Utils/strdup.h
 $(BUILD)/fort320_types.o: $(LIB)/Types/types.c $(INCLUDE)/Types/types.h
 $(BUILD)/fort320_ast_t.o: $(LIB)/IR/AST.c  $(INCLUDE)/IR/AST.h
 $(BUILD)/fort320_errcheck.o: $(LIB)/DebugInfo/errcheck.c $(INCLUDE)/DebugInfo/errcheck.h
