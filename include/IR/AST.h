@@ -90,7 +90,6 @@ extern AST_cmd_T  *mkcmd        (CmdNodeTag   cmd,
                                  AST_expr_T  *ch_1,
                                  AST_cmd_T   *ch_2,
                                  AST_cmd_T   *ch_3);
-extern void AST_init  (void);
-extern void print_ast (void);
-extern void print_expr(AST_expr_T *root);
+extern void AST_init (void);
+extern void print_ast(void);
 #endif	/* AST_H */

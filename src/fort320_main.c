@@ -44,7 +44,10 @@ int main (int argc, char **argv)
 
 	/* Scan the file */
 	yyparse();
-	printf("Parse Completed.\n");
+	printf("======   Parse Completed   =======\n\n");
+
+        printf("======   The IR is   =============\n");
+        print_ast();
 
 	return 0;
 }

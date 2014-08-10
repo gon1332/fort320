@@ -18,8 +18,8 @@ char *cmds_lookup[8] = {
 
 
 /*  -----   INTERNAL FUNCTION DECLARATIONS   ------------------------------  */
-/*static void print_expr(AST_expr_T *root);*/
-static void print_cmd (AST_cmd_T  *root);
+static void print_expr(AST_expr_T *tree);
+static void print_cmd (AST_cmd_T  *tree);
 
 
 /**************************************************************************//**
@@ -220,9 +220,14 @@ void AST_init(void)
  *****************************************************************************/
 void print_ast(void)
 {
+        puts("ENterd `print_ast()`!!");
         AST_cmd_T *curr;
-        for (curr = AST_head; curr != AST_tail; curr = curr->next)
+        curr = AST_head;
+        /*printf("---> %s <--]\n", cmds_lookup[curr->kind]);
+        */
+        for (curr = AST_head; curr != NULL; curr = curr->next) {
                 print_cmd(curr);
+        }
 }
 
 /**************************************************************************//**
@@ -230,125 +235,31 @@ void print_ast(void)
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Prints the given expression recursively.
  *****************************************************************************/
-                /*
-static void print_expr(AST_expr_T *root)
+static void print_expr(AST_expr_T *tree)
 {
-	if (root->kind < 6) {
-		printf("%s", expr_lookup[root->kind]);
-		switch (root->kind) {
-		case ID:
-                        printf("(%s) ", root->description.id_entry->str);
-                        break;
-		case EXPR_INT:
-                        printf("(%d) ", root->description.intval);
-                        break;
-		case EXPR_REAL:
-                        printf("(%g) ", root->description.realval);
-                        break;
-		case EXPR_BOOL:
-                        printf("(%d) ", root->description.charval);
-                        break;
-		case EXPR_STR:
-                        printf("(%s) ", root->description.stringval);
-                        break;
-		case EXPR_CHAR:
-                        printf("(%c) ", root->description.charval);
-                        break;
-		default:
-                        printf("!ERROR!\n");
+        if (!tree)
+                return;
+
+        printf("(%s)", expr_lookup[tree->kind]);
+
+        if (tree->kind > 5) {
+		if (tree->description.opds[0] != NULL) {
+			print_expr(tree->description.opds[0]);
 		}
-		return;
-	} else {
-		if (root->description.opds[0] != NULL) {
-			print_expr(root->description.opds[0]);
+		if (tree->description.opds[1] != NULL) {
+			print_expr(tree->description.opds[1]);
 		}
-		printf("__%s__ ", expr_lookup[root->kind]);
-		if (root->description.opds[1] != NULL) {
-			print_expr(root->description.opds[1]);
-		}
-		puts("");
 	}
 }
-                */
-/*****************************************************************************/
-#define UN_COMPACT
-int _print_t(AST_expr_T *tree, int is_left, int offset, int depth, char s[20][255])
-{
-        char b[20] = "";
-        int width = 5;
-
-        if (!tree) return 0;
-
-        /*printf("<%s>\n", expr_lookup[tree->kind]);
-        */
-        sprintf(b, "(%s)", expr_lookup[tree->kind]);
-
-        int left, right;
-        if (tree->kind > 5) {
-                left  = _print_t(tree->description.opds[0], 1, offset,                depth + 1, s);
-                right = _print_t(tree->description.opds[1], 0, offset + left + width, depth + 1, s);
-        } else {
-                left  = width;
-                right = width;
-        }
-#ifdef COMPACT
-        for (int i = 0; i < width; i++)
-                s[depth][offset + left + i] = b[i];
-
-        if (depth && is_left) {
-                for (int i = 0; i < width + right; i++)
-                s[depth - 1][offset + left + width/2 + i] = '-';
-
-                s[depth - 1][offset + left + width/2] = '.';
-        } else if (depth && !is_left) {
-                for (int i = 0; i < left + width; i++)
-                s[depth - 1][offset - width/2 + i] = '-';
-
-                s[depth - 1][offset + left + width/2] = '.';
-        }
-#else
-        for (int i = 0; i < width; i++)
-                s[2 * depth][offset + left + i] = b[i];
-
-        if (depth && is_left) {
-                for (int i = 0; i < width + right; i++)
-                s[2 * depth - 1][offset + left + width/2 + i] = '-';
-
-                s[2 * depth - 1][offset + left + width/2] = '+';
-                s[2 * depth - 1][offset + left + width + right + width/2] = '+';
-        } else if (depth && !is_left) {
-
-                for (int i = 0; i < left + width; i++)
-                s[2 * depth - 1][offset - width/2 + i] = '-';
-
-                s[2 * depth - 1][offset + left + width/2] = '+';
-                s[2 * depth - 1][offset - width/2 - 1] = '+';
-        }
-#endif
-
-        return left + width + right;
-}
-
-
-void print_expr(AST_expr_T *root)
-{
-        int i;
-        char s[20][255];
-        for (i = 0; i < 20; i++)
-                sprintf(s[i], "%80s", " ");
-
-        _print_t(root, 0, 4, 0, s);
-
-        for (i = 0; i < 20; i++)
-                printf("%s\n", s[i]);
-}
-/*****************************************************************************/
-
 
 /* TODO: gon1332 Print command nodes. Sat 09 Aug 2014 06:01:37 PM UTC */
-static void print_cmd(AST_cmd_T *root)
+static void print_cmd(AST_cmd_T *tree)
 {
-        ;
+        if (tree->expr != NULL) {
+                printf("{%s}\n", expr_lookup[tree->expr->kind]),
+                print_expr(tree->expr);
+                putchar('\n');
+        } else {
+                puts("Entered `print_cmd` but: error 404");
+        }
 }
-
-
