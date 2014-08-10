@@ -568,6 +568,7 @@ simple_constant	: ICONST
 			$$.info_str.type = TY_integer;
 			$$.info_str.basic_types.intval = $1;
 			$$.ast.expr_node = mkleaf_int($1);
+                        printf("%d ICONST is built!\n", $1);
 		}
 		| RCONST
 		{
@@ -642,8 +643,17 @@ simple_statement: assignment
 		;
 assignment	: variable ASSIGN expression
 		{
-			/*print_expr($3, 0);*/
-			mkcmd_assign($3.ast.expr_node);	/*evala cmd node edw !!!*/
+                        printf("Ready to build \'assignment\'\n");
+                        /*
+                        printf("%s...\n", expr_lookup[$1.ast.expr_node->kind]);
+                        printf("%s...\n", expr_lookup[$3.ast.expr_node->kind]);
+                        printf("  %s\n", expr_lookup[assign->kind]);
+                        printf("%s...%s\n", expr_lookup[assign->description.opds[0]->kind], "INT");
+			*/
+                        AST_expr_T *assign = NULL;
+                        assign = mknode_assign($1.ast.expr_node, $3.ast.expr_node);
+                        print_expr(assign);
+			mkcmd_assign(assign);	/*evala cmd node edw !!!*/
 		}
 		;
 variable	: ID LPAREN expressions RPAREN
@@ -666,6 +676,7 @@ variable	: ID LPAREN expressions RPAREN
                         else
                                 $$.t = TY_invalid;
 			$$.ast.expr_node = mkleaf_id(id);
+                        printf("%s ID is built\n", $1);
 		}
 		;
 expressions	: expressions COMMA expression	{ $$.ast.expr_node = mknode_comma($1.ast.expr_node, $3.ast.expr_node);}

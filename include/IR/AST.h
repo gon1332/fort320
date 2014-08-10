@@ -39,7 +39,7 @@ struct CmdNode {
 	struct CmdNode *cmds[2];
 };
 
-typedef struct CmdNode  AST_cmd_T;
+typedef struct CmdNode AST_cmd_T;
 
 /*  -----   GLOBAL INDECES   ----------------------------------------------  */
 AST_cmd_T  *AST_head,   /* Points to the first command of the program. */
@@ -92,5 +92,5 @@ extern AST_cmd_T  *mkcmd        (CmdNodeTag   cmd,
                                  AST_cmd_T   *ch_3);
 extern void AST_init  (void);
 extern void print_ast (void);
-
+extern void print_expr(AST_expr_T *root);
 #endif	/* AST_H */
