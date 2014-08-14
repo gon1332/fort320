@@ -19,8 +19,11 @@ char *cmds_lookup[8] = {
 
 /*  -----   INTERNAL FUNCTION DECLARATIONS   ------------------------------  */
 static void print_expr(AST_expr_T *tree);
-static void print_cmd (AST_cmd_T  *tree);
+static void print_cmd (AST_cmd_T  *tree, FILE *stream);
 
+static void print_dot_null(int key, int nullcount, FILE *stream);
+static void print_dot_aux (AST_expr_T *node, FILE *stream);
+static void print_expr_dot(AST_expr_T *tree, FILE *stream);
 
 /**************************************************************************//**
  * AST_expr_T *mkleaf_id (list_t *):
@@ -221,13 +224,17 @@ void AST_init(void)
 void print_ast(void)
 {
         puts("ENterd `print_ast()`!!");
+        /* Open file to store ast in dot language for graphviz */
+        FILE *stream = NULL;
+        SafeCall( stream = fopen("ast.dot", "w") );
+
         AST_cmd_T *curr;
         curr = AST_head;
-        /*printf("---> %s <--]\n", cmds_lookup[curr->kind]);
-        */
         for (curr = AST_head; curr != NULL; curr = curr->next) {
-                print_cmd(curr);
+                print_cmd(curr, stream);
         }
+
+        fclose(stream);
 }
 
 /**************************************************************************//**
@@ -253,13 +260,59 @@ static void print_expr(AST_expr_T *tree)
 }
 
 /* TODO: gon1332 Print command nodes. Sat 09 Aug 2014 06:01:37 PM UTC */
-static void print_cmd(AST_cmd_T *tree)
+static void print_cmd(AST_cmd_T *tree, FILE *stream)
 {
         if (tree->expr != NULL) {
                 printf("{%s}\n", expr_lookup[tree->expr->kind]),
                 print_expr(tree->expr);
+                print_expr_dot(tree->expr, stream);
                 putchar('\n');
         } else {
                 puts("Entered `print_cmd` but: error 404");
         }
+}
+
+
+static void print_dot_null(int key, int nullcount, FILE *stream)
+{
+        fprintf(stream, "    null%d [shape=point];\n", nullcount);
+        fprintf(stream, "    %s -> null%d;\n", expr_lookup[key], nullcount);
+}
+
+static void print_dot_aux(AST_expr_T *node, FILE *stream)
+{
+        static int nullcount = 0;
+
+        if (node->description.opds[0]) {
+                if (node->kind > 5) {
+                        fprintf(stream, "    %s -> %s;\n", expr_lookup[node->kind], expr_lookup[node->description.opds[0]->kind]);
+                        print_dot_aux(node->description.opds[0], stream);
+                } else
+                        return;
+        } else
+                print_dot_null(node->kind, nullcount++, stream);
+
+        if (node->description.opds[1]) {
+                if (node->kind > 5) {
+                        fprintf(stream, "    %s -> %s;\n", expr_lookup[node->kind], expr_lookup[node->description.opds[1]->kind]);
+                        print_dot_aux(node->description.opds[1], stream);
+                } else
+                        return;
+        } else
+                print_dot_null(node->kind, nullcount++, stream);
+}
+
+static void print_expr_dot(AST_expr_T *tree, FILE *stream)
+{
+        fprintf(stream, "digraph BST {\n");
+        fprintf(stream, "    node [fontname=\"Arial\"];\n");
+
+        if (!tree)
+                fprintf(stream, "\n");
+        else if (tree->kind < 5)
+                fprintf(stream, "    %s;\n", expr_lookup[tree->kind]);
+	else
+                print_dot_aux(tree, stream);
+
+        fprintf(stream, "}\n");
 }

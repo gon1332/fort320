@@ -49,6 +49,12 @@ Session.vim
 # KDE directory preferences
 .directory
 
+# ===============================
+# Graphviz dot and png files
+# ===============================
+*.dot
+*.png
+
 # =========================================
 # Project files/directories and Test cases
 # =========================================
