@@ -34,7 +34,7 @@ int main (int argc, char **argv)
 
 	/* Initialize my_hashtable (defined in parser)*/
 	my_hashtable = create_hash_table(8);	/*custom size of 8 lists*/
-	if(NULL == my_hashtable){
+	if (NULL == my_hashtable) {
 		printf("Hash table allocation error\n");
 		return -1;
 	}
@@ -45,9 +45,6 @@ int main (int argc, char **argv)
 	/* Scan the file */
 	yyparse();
 	printf("======   Parse Completed   =======\n\n");
-
-        printf("======   The IR is   =============\n");
-        print_ast();
 
 	return 0;
 }

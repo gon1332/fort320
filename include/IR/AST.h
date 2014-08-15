@@ -1,6 +1,8 @@
 #ifndef AST_H
 #define AST_H
 
+#include "SymbolTable/hash_t.h"
+
 typedef enum {
 	EXPR_ID=0, EXPR_INT, EXPR_REAL,  EXPR_BOOL,   EXPR_STR,   EXPR_CHAR,
        	EXPR_OR,   EXPR_AND, EXPR_NOT,   EXPR_GT,     EXPR_GE,    EXPR_LT,
@@ -24,7 +26,7 @@ struct ExprNode {
 		double           realval;	/*      */
 		char             charval;	/* leaf */
 		char            *stringval;	/*      */
-		void            *id_entry;	/* ---- */
+		list_t          *id_entry;	/* ---- */
 		struct ExprNode *opds[2];	/* node */
 	} description;
 };
@@ -77,7 +79,7 @@ AST_cmd_T  *AST_head,   /* Points to the first command of the program. */
 #define mkcmd_loop(x,y)		mkcmd(CMD_LOOP,x,y,NULL)
 
 /*  -----   EXTERNAL FUNCTION DECLARATIONS   ------------------------------  */
-extern AST_expr_T *mkleaf_id    (                  void   *id_entry);
+extern AST_expr_T *mkleaf_id    (                  list_t *id_entry);
 extern AST_expr_T *mkleaf_int   (register          int     number);
 extern AST_expr_T *mkleaf_real  (register          double  number);
 extern AST_expr_T *mkleaf_char  (register unsigned char    character);

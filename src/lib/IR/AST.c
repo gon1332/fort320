@@ -21,9 +21,10 @@ char *cmds_lookup[8] = {
 static void print_expr(AST_expr_T *tree);
 static void print_cmd (AST_cmd_T  *tree, FILE *stream);
 
-static void print_dot_null(int key, int nullcount, FILE *stream);
 static void print_dot_aux (AST_expr_T *node, FILE *stream);
 static void print_expr_dot(AST_expr_T *tree, FILE *stream);
+
+static void print_symbol(AST_expr_T *node, FILE *stream);
 
 /**************************************************************************//**
  * AST_expr_T *mkleaf_id (list_t *):
@@ -32,7 +33,7 @@ static void print_expr_dot(AST_expr_T *tree, FILE *stream);
  * symbol table.
  * Returns the pointer to the node.
  *****************************************************************************/
-AST_expr_T *mkleaf_id(void *id_entry)
+AST_expr_T *mkleaf_id(list_t *id_entry)
 {
 	AST_expr_T *ret;
 
@@ -40,8 +41,11 @@ AST_expr_T *mkleaf_id(void *id_entry)
 
 	/* Initialize the new node's fields */
 	ret->kind = EXPR_ID;
-	ret->description.id_entry = id_entry;
-
+        /*
+        SafeCall( ret->description.id_entry = malloc(sizeof(list_t)) );
+	memcpy(ret->description.id_entry, id_entry, sizeof(list_t));
+        */
+        ret->description.id_entry = id_entry;
 	return(ret);
 }
 
@@ -272,34 +276,31 @@ static void print_cmd(AST_cmd_T *tree, FILE *stream)
         }
 }
 
-
-static void print_dot_null(int key, int nullcount, FILE *stream)
-{
-        fprintf(stream, "    null%d [shape=point];\n", nullcount);
-        fprintf(stream, "    %s -> null%d;\n", expr_lookup[key], nullcount);
-}
-
 static void print_dot_aux(AST_expr_T *node, FILE *stream)
 {
-        static int nullcount = 0;
+        if (node->kind < 5) {
+                fprintf(stream, "    ");
+                print_symbol(node, stream);
+                fprintf(stream, " [shape=box];\n");
+        }
 
-        if (node->description.opds[0]) {
-                if (node->kind > 5) {
-                        fprintf(stream, "    %s -> %s;\n", expr_lookup[node->kind], expr_lookup[node->description.opds[0]->kind]);
-                        print_dot_aux(node->description.opds[0], stream);
-                } else
-                        return;
-        } else
-                print_dot_null(node->kind, nullcount++, stream);
+        if (node->kind > 5 && node->description.opds[0]) {
+                fprintf(stream, "    ");
+                print_symbol(node, stream);
+                fprintf(stream, " -> ");
+                print_symbol(node->description.opds[0], stream);
+                fprintf(stream, ";\n");
+                print_dot_aux(node->description.opds[0], stream);
+        }
 
-        if (node->description.opds[1]) {
-                if (node->kind > 5) {
-                        fprintf(stream, "    %s -> %s;\n", expr_lookup[node->kind], expr_lookup[node->description.opds[1]->kind]);
-                        print_dot_aux(node->description.opds[1], stream);
-                } else
-                        return;
-        } else
-                print_dot_null(node->kind, nullcount++, stream);
+        if (node->kind > 5 && node->description.opds[1]) {
+                fprintf(stream, "    ");
+                print_symbol(node, stream);
+                fprintf(stream, " -> ");
+                print_symbol(node->description.opds[1], stream);
+                fprintf(stream, ";\n");
+                print_dot_aux(node->description.opds[1], stream);
+        }
 }
 
 static void print_expr_dot(AST_expr_T *tree, FILE *stream)
@@ -309,10 +310,44 @@ static void print_expr_dot(AST_expr_T *tree, FILE *stream)
 
         if (!tree)
                 fprintf(stream, "\n");
-        else if (tree->kind < 5)
-                fprintf(stream, "    %s;\n", expr_lookup[tree->kind]);
-	else
+        else if (tree->kind < 5) {
+                fprintf(stream, "    ");
+                print_symbol(tree, stream);
+                fprintf(stream, ";\n");
+        } else
                 print_dot_aux(tree, stream);
 
         fprintf(stream, "}\n");
+}
+
+static void print_symbol(AST_expr_T *node, FILE *stream)
+{
+        switch (node->kind) {
+        case EXPR_ID:
+                fprintf(stream, "%s_%s", expr_lookup[node->kind],
+                                node->description.id_entry->str);
+                break;
+        case EXPR_INT:
+                fprintf(stream, "%s_%d", expr_lookup[node->kind],
+                                node->description.intval);
+                break;
+        case EXPR_REAL:
+                fprintf(stream, "%s_%lf", expr_lookup[node->kind],
+                                node->description.realval);
+                break;
+        case EXPR_BOOL:
+                fprintf(stream, "%s_%s", expr_lookup[node->kind],
+                                node->description.charval ? "true" : "false");
+                break;
+        case EXPR_STR:
+                fprintf(stream, "%s_%s", expr_lookup[node->kind],
+                                node->description.stringval);
+                break;
+        case EXPR_CHAR:
+                fprintf(stream, "%s_%c", expr_lookup[node->kind],
+                                node->description.charval);
+                break;
+        default:
+                fprintf(stream, "%s", expr_lookup[node->kind]);
+        }
 }
