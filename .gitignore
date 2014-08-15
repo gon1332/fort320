@@ -54,10 +54,12 @@ Session.vim
 # ===============================
 *.dot
 *.png
+*.ps
 
 # =========================================
 # Project files/directories and Test cases
 # =========================================
+*.sh
 TODO
 *.f
 test/
