@@ -72,10 +72,10 @@ typedef struct _list_t_ {
 } list_t;
 
 /*Stack*/
-/*The stack is a double linked list which has the pointers to the hash table nodes, sorted by nesting depth*/
-typedef struct _nd_stack_t {
-	list_t *info_node;
-	int table_num;
+/* The stack is a double linked list which has the pointers to the hash table
+ * nodes, sorted by nesting depth
+ */
+typedef struct _nd_stack_t { list_t *info_node; int table_num;
 
 	struct _nd_stack_t *next;
 	struct _nd_stack_t *prev;
@@ -83,10 +83,10 @@ typedef struct _nd_stack_t {
 /*Stack*/
 
 typedef struct _hash_table_t_ {
-    int size;       				/* the size of the table */
-    list_t **table; 				/* the table elements */
+        int size;       		/* the size of the table */
+        list_t **table; 		/* the table elements */
 
-	nd_stack_t *nd_stack;			/* nesting depth stack */
+        nd_stack_t *nd_stack;		/* nesting depth stack */
 } hash_table_t;
 /*Hash Table*/
 
