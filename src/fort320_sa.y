@@ -707,13 +707,19 @@ listexpression	: LBRACK expressions RBRACK %prec T_BRACKETS
                         /* $$.v.type = NULL; */
                 }
 		;
-goto_statement	: GOTO label { mkcmd_assign(mkleaf_int($2.intval)); }	/*evala cmd node edw !!!*/
+goto_statement	: GOTO label { mkcmd_goto(mkleaf_int($2.intval)); }	/*evala cmd node edw !!!*/
 		| GOTO ID COMMA LPAREN labels RPAREN {
-			/*add_identifier(my_hashtable, $2, scope, 1);*/
-			mkcmd_goto($5.ast.expr_node);		/*evala cmd node edw !!!*/
+                        list_t *id = NULL;
+                        id = context_check($2);
+                        AST_expr_T *tmp = NULL;
+                        tmp = mknode_comma(mkleaf_id(id), mknode_paren(NULL, $5.ast.expr_node));
+			mkcmd_goto(tmp);	/*evala cmd node edw !!!*/
 		}
 		;
-labels		: labels COMMA label { mknode_comma($1.ast.expr_node, mkleaf_int($3.intval)); }	/*/evala cmd node edw !!!*/
+labels		: labels COMMA label
+                {
+                        $$.ast.expr_node = mknode_comma($1.ast.expr_node, mkleaf_int($3.intval));
+                }	/*/evala cmd node edw !!!*/
 		| label { $$.ast.expr_node = mkleaf_int($1.intval); }
 		;
 if_statement	: IF LPAREN expression RPAREN label COMMA label COMMA label
