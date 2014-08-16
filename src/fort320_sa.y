@@ -726,6 +726,9 @@ if_statement	: IF LPAREN expression RPAREN label COMMA label COMMA label
 		| IF LPAREN expression RPAREN simple_statement
 		;
 subroutine_call	: CALL variable
+                {
+                        mkcmd_call($2.ast.expr_node);
+                }
 		;
 io_statement	: READ read_list
 		| WRITE write_list
