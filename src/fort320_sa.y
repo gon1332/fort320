@@ -196,7 +196,7 @@
 
 
 %%
-program		: body END subprograms
+program		: body END { mkcmd_end(); } subprograms
 		;
 body		:
 /*$1*/		{ scope++; /* put */ }

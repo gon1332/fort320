@@ -13,7 +13,7 @@ typedef enum {
 
 typedef enum {
 	CMD_ASSIGN=0, CMD_GOTO, CMD_S_IF, CMD_C_IF, CMD_CALL, CMD_IO,
-	CMD_C_FLOW,   CMD_LOOP
+	CMD_C_FLOW,   CMD_LOOP, CMD_END
 } CmdNodeTag;
 
 extern char *expr_lookup[];
@@ -77,6 +77,7 @@ AST_cmd_T  *AST_head,   /* Points to the first command of the program. */
 #define mkcmd_io(x,y)		mkcmd(CMD_IO,x,y,NULL)
 #define mkcmd_ctrl_flow(x)	mkcmd(CMD_C_FLOW,NULL,NULL,NULL)
 #define mkcmd_loop(x,y)		mkcmd(CMD_LOOP,x,y,NULL)
+#define mkcmd_end()             mkcmd(CMD_END,NULL,NULL,NULL)
 
 /*  -----   EXTERNAL FUNCTION DECLARATIONS   ------------------------------  */
 extern AST_expr_T *mkleaf_id    (                  list_t *id_entry);

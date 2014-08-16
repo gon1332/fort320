@@ -12,8 +12,8 @@ char *expr_lookup[26] = {
         "DIV", "POW", "PAREN", "ASSIGN", "COLON", "BRACK", "COMMA"
 };
 
-char *cmds_lookup[8] = {
-	"ASSIGN", "GOTO", "S_IF", "C_IF", "CALL", "IO", "C_FLOW", "LOOP"
+char *cmds_lookup[9] = {
+	"ASSIGN", "GOTO", "S_IF", "C_IF", "CALL", "IO", "C_FLOW", "LOOP", "END"
 };
 
 
@@ -179,7 +179,7 @@ AST_expr_T *mknode(
  * Returns the pointer to the node.
  *****************************************************************************/
 AST_cmd_T *mkcmd(
-		CmdNodeTag  cmd,
+                CmdNodeTag  cmd,
 		AST_expr_T *ch_1,
  		AST_cmd_T  *ch_2,
 		AST_cmd_T  *ch_3
@@ -267,13 +267,14 @@ static void print_expr(AST_expr_T *tree)
 /* TODO: gon1332 Print command nodes. Sat 09 Aug 2014 06:01:37 PM UTC */
 static void print_cmd(AST_cmd_T *tree, FILE *stream)
 {
+        printf("[%s]:", cmds_lookup[tree->kind]);
         if (tree->expr != NULL) {
-                printf("{%s}\n", expr_lookup[tree->expr->kind]),
+                printf("{%s}\n\t", expr_lookup[tree->expr->kind]);
                 print_expr(tree->expr);
                 print_expr_dot(tree->expr, stream);
                 putchar('\n');
         } else {
-                puts("Entered `print_cmd` but: error 404");
+                puts("Entered `print_cmd` but: error 404 expressions\n");
         }
 }
 
