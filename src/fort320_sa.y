@@ -124,6 +124,9 @@
 %type<symtab_ast> values
 %type<symtab_ast> value
 %type<symtab_ast> variable
+%type<symtab_ast> assignment
+%type<symtab_ast> goto_statement
+%typt<symtab_ast> subroutine_call
 %type<symtab_ast.intval> repeat
 %type<symtab_ast.charval> sign
 %type<symtab_ast.params> formal_parameters
@@ -631,10 +634,10 @@ label		: ICONST { $$.ast.expr_node = mkleaf_int($1); }
 statement	: simple_statement
 		| compound_statement
 		;
-simple_statement: assignment
-		| goto_statement
+simple_statement: assignment            { mkcmd_assign($1.ast.expr_node); }
+		| goto_statement        { mkcmd_goto  ($1.ast.expr_node); }
 		| if_statement
-		| subroutine_call
+		| subroutine_call       { mkcmd_call  ($1.ast.expr_node); }
 		| io_statement
 		| CONTINUE
 		| RETURN
@@ -649,9 +652,7 @@ assignment	: variable ASSIGN expression
                         printf("  %s\n", expr_lookup[assign->kind]);
                         printf("%s...%s\n", expr_lookup[assign->description.opds[0]->kind], "INT");
 			*/
-                        AST_expr_T *assign = NULL;
-                        assign = mknode_assign($1.ast.expr_node, $3.ast.expr_node);
-			mkcmd_assign(assign);	/*evala cmd node edw !!!*/
+                        $$.ast.expr_node = mknode_assign($1.ast.expr_node, $3.ast.expr_node);
 		}
 		;
 variable	: ID LPAREN expressions RPAREN
@@ -707,28 +708,27 @@ listexpression	: LBRACK expressions RBRACK %prec T_BRACKETS
                         /* $$.v.type = NULL; */
                 }
 		;
-goto_statement	: GOTO label { mkcmd_goto(mkleaf_int($2.intval)); }	/*evala cmd node edw !!!*/
+goto_statement	: GOTO label { $$.ast.expr_node = mkleaf_int($2.intval); }
 		| GOTO ID COMMA LPAREN labels RPAREN {
                         list_t *id = NULL;
                         id = context_check($2);
-                        AST_expr_T *tmp = NULL;
-                        tmp = mknode_comma(mkleaf_id(id), mknode_paren(NULL, $5.ast.expr_node));
-			mkcmd_goto(tmp);	/*evala cmd node edw !!!*/
+                        $$.ast.expr_node = mknode_comma(mkleaf_id(id),
+                                                        mknode_paren(NULL,
+                                                                     $5.ast.expr_node)
+                                                       );
 		}
 		;
 labels		: labels COMMA label
                 {
-                        $$.ast.expr_node = mknode_comma($1.ast.expr_node, mkleaf_int($3.intval));
-                }	/*/evala cmd node edw !!!*/
+                        $$.ast.expr_node = mknode_comma($1.ast.expr_node,
+                                                        mkleaf_int($3.intval));
+                }
 		| label { $$.ast.expr_node = mkleaf_int($1.intval); }
 		;
 if_statement	: IF LPAREN expression RPAREN label COMMA label COMMA label
 		| IF LPAREN expression RPAREN simple_statement
 		;
-subroutine_call	: CALL variable
-                {
-                        mkcmd_call($2.ast.expr_node);
-                }
+subroutine_call	: CALL variable { $$.ast.expr_node = $2.ast.expr_node; }
 		;
 io_statement	: READ read_list
 		| WRITE write_list
