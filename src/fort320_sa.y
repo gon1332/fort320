@@ -202,7 +202,6 @@ body		:
 /*$1*/		{ scope++; /* put */ }
 /*$2,$3*/	declarations statements
 /*$4*/		{
-                        print_ast();
 			delete_scope(my_hashtable, scope);
 			scope--;
 		}

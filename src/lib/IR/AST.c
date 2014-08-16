@@ -18,13 +18,11 @@ char *cmds_lookup[8] = {
 
 
 /*  -----   INTERNAL FUNCTION DECLARATIONS   ------------------------------  */
-static void print_expr(AST_expr_T *tree);
-static void print_cmd (AST_cmd_T  *tree, FILE *stream);
-
+static void print_cmd     (AST_cmd_T  *tree, FILE *stream);
+static void print_expr    (AST_expr_T *tree);
 static void print_dot_aux (AST_expr_T *node, FILE *stream);
 static void print_expr_dot(AST_expr_T *tree, FILE *stream);
-
-static void print_symbol(AST_expr_T *node, FILE *stream);
+static void print_symbol  (AST_expr_T *node, FILE *stream);
 
 /**************************************************************************//**
  * AST_expr_T *mkleaf_id (list_t *):
@@ -41,12 +39,15 @@ AST_expr_T *mkleaf_id(list_t *id_entry)
 
 	/* Initialize the new node's fields */
 	ret->kind = EXPR_ID;
-        /*
-        SafeCall( ret->description.id_entry = malloc(sizeof(list_t)) );
-	memcpy(ret->description.id_entry, id_entry, sizeof(list_t));
+        /* Deep-copy the struct *//*
+        SafeCall( ret->description.id_entry = malloc(sizeof(*id_entry)) );
+	memcpy(ret->description.id_entry, id_entry, sizeof(*id_entry));
+        SafeCall( ret->description.id_entry->str = malloc(sizeof()) );
         */
-        ret->description.id_entry = id_entry;
-	return(ret);
+        /*ret->description.id_entry = id_entry;
+        */
+        ret->description.stringval = strdup(id_entry->str);
+        return(ret);
 }
 
 /**************************************************************************//**
@@ -325,14 +326,14 @@ static void print_symbol(AST_expr_T *node, FILE *stream)
         switch (node->kind) {
         case EXPR_ID:
                 fprintf(stream, "%s_%s", expr_lookup[node->kind],
-                                node->description.id_entry->str);
+                                node->description.stringval);
                 break;
         case EXPR_INT:
                 fprintf(stream, "%s_%d", expr_lookup[node->kind],
                                 node->description.intval);
                 break;
         case EXPR_REAL:
-                fprintf(stream, "%s_%lf", expr_lookup[node->kind],
+                fprintf(stream, "\"%s_%.2lf\"", expr_lookup[node->kind],
                                 node->description.realval);
                 break;
         case EXPR_BOOL:
