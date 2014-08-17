@@ -243,7 +243,7 @@ void print_ast(void)
 }
 
 /**************************************************************************//**
- * static void print_expr (AST_expr_T)
+ * static void print_expr(AST_expr_T)
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Prints the given expression recursively.
  *****************************************************************************/
@@ -264,7 +264,12 @@ static void print_expr(AST_expr_T *tree)
 	}
 }
 
-/* TODO: gon1332 Print command nodes. Sat 09 Aug 2014 06:01:37 PM UTC */
+/**************************************************************************//**
+ * static void print_cmd(AST_cmd_T, FILE)
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Prints the given command with every nested commands included. Write also to
+ * the graphviz dot file for graphical representation.
+ *****************************************************************************/
 static void print_cmd(AST_cmd_T *tree, FILE *stream)
 {
         printf("[%s]:", cmds_lookup[tree->kind]);
@@ -278,6 +283,11 @@ static void print_cmd(AST_cmd_T *tree, FILE *stream)
         }
 }
 
+/**************************************************************************//**
+ * static void print_dot_aux(AST_expr_T, FILE)
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Prints the given expression tree in graphviz dor language.
+ *****************************************************************************/
 static void print_dot_aux(AST_expr_T *node, FILE *stream)
 {
         if (node->kind < 5) {
@@ -305,6 +315,12 @@ static void print_dot_aux(AST_expr_T *node, FILE *stream)
         }
 }
 
+/**************************************************************************//**
+ * static void print_expr_dot(AST_expr_T, FILE)
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Prints the given expression tree basics in dot language and then calls
+ * print_dot_aux for the rest.
+ *****************************************************************************/
 static void print_expr_dot(AST_expr_T *tree, FILE *stream)
 {
         fprintf(stream, "digraph BST {\n");
@@ -322,6 +338,12 @@ static void print_expr_dot(AST_expr_T *tree, FILE *stream)
         fprintf(stream, "}\n");
 }
 
+/**************************************************************************//**
+ * static void print_symbol(AST_expr_T, FILE)
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Prints the given expression node representation in a more verbose way for
+ * the graphviz dot file for verbose graphical representation.
+ *****************************************************************************/
 static void print_symbol(AST_expr_T *node, FILE *stream)
 {
         switch (node->kind) {
