@@ -126,7 +126,7 @@
 %type<symtab_ast> variable
 %type<symtab_ast> assignment
 %type<symtab_ast> goto_statement
-%typt<symtab_ast> subroutine_call
+%type<symtab_ast> subroutine_call
 %type<symtab_ast.intval> repeat
 %type<symtab_ast.charval> sign
 %type<symtab_ast.params> formal_parameters
@@ -670,11 +670,11 @@ variable	: ID LPAREN expressions RPAREN
 		| ID
 		{
 			list_t *id = context_check($1);
-                        if (id)
+                        if (id) {
                                 $$.t = id->type;
-                        else
+			                    $$.ast.expr_node = mkleaf_id(id);
+                        } else
                                 $$.t = TY_invalid;
-			$$.ast.expr_node = mkleaf_id(id);
                 }
 		;
 expressions	: expressions COMMA expression	{ $$.ast.expr_node = mknode_comma($1.ast.expr_node, $3.ast.expr_node);}

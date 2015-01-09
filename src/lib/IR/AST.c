@@ -39,15 +39,15 @@ AST_expr_T *mkleaf_id(list_t *id_entry)
 
 	/* Initialize the new node's fields */
 	ret->kind = EXPR_ID;
-        /* Deep-copy the struct *//*
-        SafeCall( ret->description.id_entry = malloc(sizeof(*id_entry)) );
-	memcpy(ret->description.id_entry, id_entry, sizeof(*id_entry));
-        SafeCall( ret->description.id_entry->str = malloc(sizeof()) );
-        */
-        /*ret->description.id_entry = id_entry;
-        */
-        ret->description.stringval = strdup(id_entry->str);
-        return(ret);
+    /* Deep-copy the struct *//*
+    SafeCall( ret->description.id_entry = malloc(sizeof(*id_entry)) );
+    memcpy(ret->description.id_entry, id_entry, sizeof(*id_entry));
+    SafeCall( ret->description.id_entry->str = malloc(sizeof()) );
+    */
+    /*ret->description.id_entry = id_entry;
+    */
+    ret->description.stringval = strdup(id_entry->str);
+    return(ret);
 }
 
 /**************************************************************************//**
@@ -228,18 +228,18 @@ void AST_init(void)
  *****************************************************************************/
 void print_ast(void)
 {
-        puts("ENterd `print_ast()`!!");
-        /* Open file to store ast in dot language for graphviz */
-        FILE *stream = NULL;
-        SafeCall( stream = fopen("ast.dot", "w") );
+    puts("ENterd `print_ast()`!!");
+    /* Open file to store ast in dot language for graphviz */
+    FILE *stream = NULL;
+    SafeCall( stream = fopen("ast.dot", "w") );
 
-        AST_cmd_T *curr;
-        curr = AST_head;
-        for (curr = AST_head; curr != NULL; curr = curr->next) {
-                print_cmd(curr, stream);
-        }
+    AST_cmd_T *curr;
+    curr = AST_head;
+    for (curr = AST_head; curr != NULL; curr = curr->next) {
+        print_cmd(curr, stream);
+    }
 
-        fclose(stream);
+    fclose(stream);
 }
 
 /**************************************************************************//**
@@ -249,19 +249,19 @@ void print_ast(void)
  *****************************************************************************/
 static void print_expr(AST_expr_T *tree)
 {
-        if (!tree)
-                return;
+    if (!tree)
+        return;
 
-        printf("(%s)", expr_lookup[tree->kind]);
+    printf("(%s)", expr_lookup[tree->kind]);
 
-        if (tree->kind > 5) {
-		if (tree->description.opds[0] != NULL) {
-			print_expr(tree->description.opds[0]);
-		}
-		if (tree->description.opds[1] != NULL) {
-			print_expr(tree->description.opds[1]);
-		}
-	}
+    if (tree->kind > 5) {
+        if (tree->description.opds[0] != NULL) {
+            print_expr(tree->description.opds[0]);
+        }
+        if (tree->description.opds[1] != NULL) {
+            print_expr(tree->description.opds[1]);
+        }
+    }
 }
 
 /**************************************************************************//**
@@ -272,15 +272,15 @@ static void print_expr(AST_expr_T *tree)
  *****************************************************************************/
 static void print_cmd(AST_cmd_T *tree, FILE *stream)
 {
-        printf("[%s]:", cmds_lookup[tree->kind]);
-        if (tree->expr != NULL) {
-                printf("{%s}\n\t", expr_lookup[tree->expr->kind]);
-                print_expr(tree->expr);
-                print_expr_dot(tree->expr, stream);
-                putchar('\n');
-        } else {
-                puts("Entered `print_cmd` but: error 404 expressions\n");
-        }
+    printf("[%s]:", cmds_lookup[tree->kind]);
+    if (tree->expr != NULL) {
+        printf("{%s}\n\t", expr_lookup[tree->expr->kind]);
+        print_expr(tree->expr);
+        print_expr_dot(tree->expr, stream);
+        putchar('\n');
+    } else {
+        puts("Entered `print_cmd` but: error 404 expressions\n");
+    }
 }
 
 /**************************************************************************//**
@@ -290,29 +290,29 @@ static void print_cmd(AST_cmd_T *tree, FILE *stream)
  *****************************************************************************/
 static void print_dot_aux(AST_expr_T *node, FILE *stream)
 {
-        if (node->kind < 5) {
-                fprintf(stream, "    ");
-                print_symbol(node, stream);
-                fprintf(stream, " [shape=box];\n");
-        }
+    if (node->kind < 5) {
+        fprintf(stream, "    ");
+        print_symbol(node, stream);
+        fprintf(stream, " [shape=box];\n");
+    }
 
-        if (node->kind > 5 && node->description.opds[0]) {
-                fprintf(stream, "    ");
-                print_symbol(node, stream);
-                fprintf(stream, " -> ");
-                print_symbol(node->description.opds[0], stream);
-                fprintf(stream, ";\n");
-                print_dot_aux(node->description.opds[0], stream);
-        }
+    if (node->kind > 5 && node->description.opds[0]) {
+        fprintf(stream, "    ");
+        print_symbol(node, stream);
+        fprintf(stream, " -> ");
+        print_symbol(node->description.opds[0], stream);
+        fprintf(stream, ";\n");
+        print_dot_aux(node->description.opds[0], stream);
+    }
 
-        if (node->kind > 5 && node->description.opds[1]) {
-                fprintf(stream, "    ");
-                print_symbol(node, stream);
-                fprintf(stream, " -> ");
-                print_symbol(node->description.opds[1], stream);
-                fprintf(stream, ";\n");
-                print_dot_aux(node->description.opds[1], stream);
-        }
+    if (node->kind > 5 && node->description.opds[1]) {
+        fprintf(stream, "    ");
+        print_symbol(node, stream);
+        fprintf(stream, " -> ");
+        print_symbol(node->description.opds[1], stream);
+        fprintf(stream, ";\n");
+        print_dot_aux(node->description.opds[1], stream);
+    }
 }
 
 /**************************************************************************//**
@@ -323,19 +323,19 @@ static void print_dot_aux(AST_expr_T *node, FILE *stream)
  *****************************************************************************/
 static void print_expr_dot(AST_expr_T *tree, FILE *stream)
 {
-        fprintf(stream, "digraph BST {\n");
-        fprintf(stream, "    node [fontname=\"Arial\"];\n");
+    fprintf(stream, "digraph BST {\n");
+    fprintf(stream, "    node [fontname=\"Arial\"];\n");
 
-        if (!tree)
-                fprintf(stream, "\n");
-        else if (tree->kind < 5) {
-                fprintf(stream, "    ");
-                print_symbol(tree, stream);
-                fprintf(stream, ";\n");
-        } else
-                print_dot_aux(tree, stream);
+    if (!tree) {
+        fprintf(stream, "\n");
+    } else if (tree->kind < 5) {
+        fprintf(stream, "    ");
+        print_symbol(tree, stream);
+        fprintf(stream, ";\n");
+    } else
+        print_dot_aux(tree, stream);
 
-        fprintf(stream, "}\n");
+    fprintf(stream, "}\n");
 }
 
 /**************************************************************************//**
