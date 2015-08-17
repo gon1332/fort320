@@ -84,9 +84,9 @@ int convert_hex_bin_oct_to_dec (const char *input)
 		else if ('X' == input[1] || 'x' == input[1]) {
 			for (i = 2, power = strlen(input)-2-1; power >= 0 && input[i] != '\0'; power--, i++) {
 				if (ASCII_is_in_a_f(input[i]))
-					result += (input[i] - ASCII_a) * pow((double) HEX_base, (double) power);
+					result += (10 + input[i] - ASCII_a) * pow((double) HEX_base, (double) power);
 				else if (ASCII_is_in_A_F(input[i]))
-					result += (input[i] - ASCII_A) * pow((double) HEX_base, (double) power);
+					result += (10 + input[i] - ASCII_A) * pow((double) HEX_base, (double) power);
 				else if (ASCII_is_in_0_9(input[i]))
 					result += (input[i] - ASCII_0) * pow((double) HEX_base, (double) power);
 				else {
